@@ -10,7 +10,7 @@
         android:layout_height="wrap_content"
         android:text="@string/start"
         android:textSize="40dp"
-        android:id="@+id/btn_start"
+        android:id="@+id/btn_control"
         android:layout_centerVertical="true"
         android:layout_centerHorizontal="true" />
 
@@ -18,7 +18,7 @@
         android:orientation="vertical"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/btn_start"
+        android:layout_below="@+id/btn_control"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="75dp">
     <RadioGroup
