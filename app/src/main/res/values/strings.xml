@@ -8,5 +8,10 @@
     <string name="stop">Stop</string>
     <string name="defer">Defer</string>
     <string name="warning">Warning</string>
-    <string name="notification_setting">Notificatino Setting</string>
+    <string name="notification_setting">Notification Setting</string>
+
+    <string name="ok">Okay</string>
+    <string name="ignore">Whatever</string>
+
+    <string name="warning_message">Remember? You are with your friend! Focus!</string>
 </resources>
