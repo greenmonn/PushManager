@@ -8,4 +8,5 @@
     <string name="stop">Stop</string>
     <string name="defer">Defer</string>
     <string name="warning">Warning</string>
+    <string name="notification_setting">Notificatino Setting</string>
 </resources>

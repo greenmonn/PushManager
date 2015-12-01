@@ -15,6 +15,8 @@ import kr.ac.kaist.nmsl.pushmanager.util.ServiceUtil;
 import kr.ac.kaist.nmsl.pushmanager.warning.WarningService;
 
 public class MainActivity extends Activity {
+    private static final int ACTIVITY_RESULT_NOTIFICATION_LISTENER_SETTINGS = 142;
+
     private Context context;
 
     enum ServiceState{
@@ -78,6 +80,16 @@ public class MainActivity extends Activity {
                         }
                         break;
                 }
+            }
+        });
+
+        // Initialize notification setting button
+        final Button btnNotificationSetting = (Button) findViewById(R.id.btn_notification_setting);
+        btnNotificationSetting.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                Intent settingIntent = new Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS");
+                startActivityForResult(settingIntent, ACTIVITY_RESULT_NOTIFICATION_LISTENER_SETTINGS);
             }
         });
     }
