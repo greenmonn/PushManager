@@ -4,8 +4,8 @@ import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.media.AudioManager;
-import android.os.CountDownTimer;
 import android.os.IBinder;
 import android.os.Vibrator;
 import android.util.Log;
@@ -15,13 +15,16 @@ import java.util.*;
 import kr.ac.kaist.nmsl.pushmanager.Constants;
 
 public class DeferService extends Service {
-    public static final int DEFER_DURATION = 10*1000;
-    public static final int VIBRATION_DURATION = 500;
+    private static final String INTENT_FILTER = "kr.ac.kaist.nmsl.pushmanager";
+    private static final int DEFER_DURATION = 10*1000;
+    private static final int VIBRATION_DURATION = 500;
 
     private AudioManager mAudioManager;
     private Vibrator mVibrator;
     private Timer mTimer;
     private int mNotificationCount;
+
+    private DeferServiceReceiver mDeferServiceReceiver = null;
 
     public DeferService() {
     }
@@ -29,6 +32,8 @@ public class DeferService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         mNotificationCount = 0;
+
+        mDeferServiceReceiver = new DeferServiceReceiver();
 
         mAudioManager = (AudioManager)getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
         mAudioManager.setRingerMode(AudioManager.RINGER_MODE_SILENT);
@@ -47,6 +52,10 @@ public class DeferService extends Service {
             }
         }, DEFER_DURATION, DEFER_DURATION);
 
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(INTENT_FILTER);
+        registerReceiver(mDeferServiceReceiver, filter);
+
         Log.i(Constants.DEBUG_TAG, "DeferService started.");
 
         return START_STICKY;
@@ -54,6 +63,7 @@ public class DeferService extends Service {
 
     @Override
     public void onDestroy() {
+        unregisterReceiver(mDeferServiceReceiver);
         mAudioManager.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
         mTimer.cancel();
         super.onDestroy();
@@ -65,7 +75,7 @@ public class DeferService extends Service {
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
-    class DeferReceiver extends BroadcastReceiver {
+    class DeferServiceReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
             if(intent.getStringExtra("command").equals("posted")) {
