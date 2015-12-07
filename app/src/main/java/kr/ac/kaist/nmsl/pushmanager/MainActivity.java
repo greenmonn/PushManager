@@ -102,7 +102,7 @@ public class MainActivity extends Activity {
 
         if(this.currentServiceState == ServiceState.WarningService) {
             // Warning service is already running
-            String stopServiceMessage = String.format("%s %s", getString(R.string.stop), WarningService.class.getSimpleName());
+            String stopServiceMessage = String.format("%s", getString(R.string.stop));
             btnControl.setText(stopServiceMessage);
 
             radioWarning.setChecked(true);
@@ -111,7 +111,7 @@ public class MainActivity extends Activity {
             radioWarning.setEnabled(false);
         } else if (this.currentServiceState == ServiceState.DeferService) {
             // Defer service is already running
-            String stopServiceMessage = String.format("%s %s", getString(R.string.stop), DeferService.class.getSimpleName());
+            String stopServiceMessage = String.format("%s", getString(R.string.stop));
             btnControl.setText(stopServiceMessage);
 
             radioDefer.setChecked(true);

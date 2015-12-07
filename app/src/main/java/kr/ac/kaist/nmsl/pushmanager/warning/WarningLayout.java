@@ -15,7 +15,6 @@ import kr.ac.kaist.nmsl.pushmanager.R;
  * Created by wns349 on 2015-12-01.
  */
 public class WarningLayout extends RelativeLayout{
-    private WindowManager windowManager;
     private WarningLayout self;
     private Context context;
 
@@ -23,8 +22,6 @@ public class WarningLayout extends RelativeLayout{
         super(c);
         this.context = c;
         this.self = this;
-
-        this.windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
 
         inflate(context, R.layout.warning_layout, this);
 
@@ -34,7 +31,7 @@ public class WarningLayout extends RelativeLayout{
             @Override
             public void onClick(View v) {
                 Toast.makeText(context, "Ok clicked", Toast.LENGTH_SHORT).show();
-                windowManager.removeView(self);
+                self.setVisibility(View.GONE);
             }
         });
 
@@ -44,7 +41,7 @@ public class WarningLayout extends RelativeLayout{
             @Override
             public void onClick(View v) {
                 Toast.makeText(context, "Ignore clicked", Toast.LENGTH_SHORT).show();
-                windowManager.removeView(self);
+                self.setVisibility(View.GONE);
             }
         });
 
@@ -52,7 +49,6 @@ public class WarningLayout extends RelativeLayout{
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
-        // super.setVisibility(View.GONE);
         return super.dispatchKeyEvent(event);
     }
 }
