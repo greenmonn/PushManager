@@ -1,6 +1,7 @@
 package kr.ac.kaist.nmsl.pushmanager.warning;
 
 
+import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -17,7 +18,7 @@ import android.view.WindowManager;
 
 import kr.ac.kaist.nmsl.pushmanager.Constants;
 
-public class WarningService extends NotificationListenerService {
+public class WarningService extends Service {
     private static final String INTENT_FILTER = "kr.ac.kaist.nmsl.pushmanager";
 
     private Context context;
@@ -70,27 +71,7 @@ public class WarningService extends NotificationListenerService {
 
     @Override
     public IBinder onBind(Intent intent) {
-        return super.onBind(intent);
-    }
-
-    @Override
-    public void onNotificationPosted(StatusBarNotification sbn) {
-        String pack = sbn.getPackageName();
-
-        Log.i(Constants.DEBUG_TAG, "Notification received: " + pack);
-
-        Intent i = new  Intent(INTENT_FILTER);
-        i.putExtra("command", "show");
-        sendBroadcast(i);
-    }
-
-    @Override
-    public void onNotificationRemoved(StatusBarNotification sbn) {
-        Log.i(Constants.DEBUG_TAG, "Notification Removed");
-
-        Intent i = new  Intent(INTENT_FILTER);
-        i.putExtra("command","hide");
-        sendBroadcast(i);
+        throw new UnsupportedOperationException("Not yet implemented");
     }
 
     @Override
@@ -111,9 +92,9 @@ public class WarningService extends NotificationListenerService {
     class WarningServiceReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
-            if(intent.getStringExtra("command").equals("show")) {
+            if(intent.getStringExtra("command").equals("posted")) {
                 showWarningLayout();
-            } else if (intent.getStringExtra("command").equals("hide")) {
+            } else if (intent.getStringExtra("command").equals("removed")) {
                 hideWarningLayout();
             }
         }

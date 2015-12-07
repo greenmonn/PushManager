@@ -6,5 +6,4 @@ package kr.ac.kaist.nmsl.pushmanager;
 public class Constants {
     public static final String DEBUG_TAG = "PM_DEBUG";
     public static final String TAG = "PM";
-
 }

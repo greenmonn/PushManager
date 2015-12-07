@@ -11,6 +11,7 @@ import android.widget.RadioGroup;
 import android.widget.Toast;
 
 import kr.ac.kaist.nmsl.pushmanager.defer.DeferService;
+import kr.ac.kaist.nmsl.pushmanager.notification.NotificationService;
 import kr.ac.kaist.nmsl.pushmanager.util.ServiceUtil;
 import kr.ac.kaist.nmsl.pushmanager.warning.WarningService;
 
@@ -41,6 +42,8 @@ public class MainActivity extends Activity {
         } else {
             currentServiceState = ServiceState.NoService;
         }
+
+        context.startService(new Intent(context, NotificationService.class));
 
         // Update UI accordingly
         updateUIComponents();

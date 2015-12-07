@@ -3,6 +3,7 @@
     package="kr.ac.kaist.nmsl.pushmanager" >
 
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.VIBRATE" />
 
     <application
         android:allowBackup="true"
@@ -26,12 +27,18 @@
         </service>
         <service
             android:name=".warning.WarningService"
-            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
             android:enabled="true"
-            android:exported="true" >
+            android:exported="true">
+
+        </service>
+        <service
+            android:name=".notification.NotificationService"
+            android:enabled="true"
+            android:exported="true"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE" >
             <intent-filter>
                 <action android:name="android.service.notification.NotificationListenerService" />
-            </intent-filter>
+            </intent-filter>>
         </service>
     </application>
 
