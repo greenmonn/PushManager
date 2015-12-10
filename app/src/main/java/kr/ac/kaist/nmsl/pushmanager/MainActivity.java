@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.os.Environment;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
@@ -12,6 +13,10 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.File;
+import java.security.CodeSigner;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
@@ -19,10 +24,12 @@ import java.util.concurrent.TimeUnit;
 import kr.ac.kaist.nmsl.pushmanager.defer.DeferService;
 import kr.ac.kaist.nmsl.pushmanager.notification.NotificationService;
 import kr.ac.kaist.nmsl.pushmanager.util.ServiceUtil;
+import kr.ac.kaist.nmsl.pushmanager.util.Util;
 import kr.ac.kaist.nmsl.pushmanager.warning.WarningService;
 
 public class MainActivity extends Activity {
     private static final int ACTIVITY_RESULT_NOTIFICATION_LISTENER_SETTINGS = 142;
+    public static final String FILE_UTIL_FILE_DATETIME_FORMAT = "yyyyMMdd_HHmmss";
 
     private Context context;
 
@@ -44,6 +51,13 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        //initialize SCAN folder
+        File dir = new File(Environment.getExternalStoragePublicDirectory(Constants.DIR_NAME).getAbsolutePath());
+        if (!dir.exists() || !dir.isDirectory()) {
+            dir.mkdirs();
+        }
+
         this.context = getApplicationContext();
         mCountDownTimer = new CountDownTimer(0,0) {
             @Override
@@ -80,6 +94,9 @@ public class MainActivity extends Activity {
                         stopAllServices();
                         break;
                     case NoService:
+                        SimpleDateFormat fileDateFormat = new SimpleDateFormat(FILE_UTIL_FILE_DATETIME_FORMAT);
+                        Constants.LOG_NAME = fileDateFormat.format(new Date());
+                        Constants.LOG_ENABLED = true;
                         Toast.makeText(context, "Start managing cellphone use", Toast.LENGTH_SHORT).show();
                         startNoInterventionService();
 
@@ -133,12 +150,18 @@ public class MainActivity extends Activity {
         context.startService(new Intent(context, WarningService.class));
         currentServiceState = ServiceState.WarningService;
         updateUIComponents();
+        if (Constants.LOG_ENABLED) {
+            Util.writeLogToFile(context, Constants.LOG_NAME, "==============Warning started===============");
+        }
     }
 
     private void startDeferService(){
         context.startService(new Intent(context, DeferService.class));
         currentServiceState = ServiceState.DeferService;
         updateUIComponents();
+        if (Constants.LOG_ENABLED) {
+            Util.writeLogToFile(context, Constants.LOG_NAME, "==============Defer started===============");
+        }
     }
 
     private void startNoInterventionService() {
@@ -146,6 +169,9 @@ public class MainActivity extends Activity {
         updateUIComponents();
         startCountDownTimer(ServiceState.NoIntervention);
         Log.d(Constants.DEBUG_TAG, "NoIntervention started");
+        if (Constants.LOG_ENABLED) {
+            Util.writeLogToFile(context, Constants.LOG_NAME, "==============NoIntervention started===============");
+        }
     }
 
     private void stopAllServices(){
@@ -155,6 +181,10 @@ public class MainActivity extends Activity {
         mTimer.cancel();
         mCountDownTimer.cancel();
         updateUIComponents();
+        if (Constants.LOG_ENABLED) {
+            Util.writeLogToFile(context, Constants.LOG_NAME, "==============All ended===============");
+            Constants.LOG_ENABLED = false;
+        }
     }
 
     private void startCountDownTimer(final ServiceState serviceState) {
@@ -214,5 +244,11 @@ public class MainActivity extends Activity {
             txtServiceStatus.setText(getString(R.string.service_status_nothing));
             txtRemainingTime.setText(String.format(getString(R.string.time_zero) + " (%d/%d)", currentServiceState.ordinal(), ServiceState.values().length-1));
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        //Constants.LOG_ENABLED = false;
     }
 }

@@ -11,6 +11,7 @@ import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 
 import kr.ac.kaist.nmsl.pushmanager.Constants;
+import kr.ac.kaist.nmsl.pushmanager.util.Util;
 
 public class EventRecorderService extends AccessibilityService {
     public EventRecorderService() {
@@ -34,10 +35,16 @@ public class EventRecorderService extends AccessibilityService {
 
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
-        Log.d(Constants.DEBUG_TAG, String.format(
-                "onAccessibilityEvent: [type] %s [class] %s [package] %s [time] %s [text] %s [action] %d",
-                AccessibilityEvent.eventTypeToString(event.getEventType()), event.getClassName(), event.getPackageName(),
-                event.getEventTime(), getEventText(event), event.getAction()));
+        String msg = String.format(
+                //"onAccessibilityEvent: [type] %s [class] %s [package] %s [time] %s [text] %s",
+                //[time] [type] [class] [package] [text]",
+                "%s, %s, %s, %s, %s",
+                event.getEventTime(), AccessibilityEvent.eventTypeToString(event.getEventType()), event.getClassName(), event.getPackageName(),
+                getEventText(event));
+        Log.d(Constants.DEBUG_TAG, msg);
+        if (Constants.LOG_ENABLED) {
+            Util.writeLogToFile(getApplicationContext(), Constants.LOG_NAME, msg);
+        }
     }
 
     @Override
