@@ -41,3 +41,4 @@ local.properties
 *.swp
 
 app/google-services.json
+*Credentials.java

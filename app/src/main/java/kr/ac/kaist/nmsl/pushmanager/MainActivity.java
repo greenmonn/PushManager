@@ -11,6 +11,9 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 
+import com.parse.Parse;
+import com.parse.ParseInstallation;
+
 import kr.ac.kaist.nmsl.pushmanager.defer.DeferService;
 import kr.ac.kaist.nmsl.pushmanager.notification.NotificationService;
 import kr.ac.kaist.nmsl.pushmanager.util.ServiceUtil;
@@ -34,6 +37,10 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         this.context = getApplicationContext();
+
+        // Parse notification
+        Parse.initialize(this, Credentials.PARSE_APPLICATION_ID, Credentials.PARSE_CLIENT_KEY);
+        ParseInstallation.getCurrentInstallation().saveInBackground();
 
         // Check if service is already running or not
         if(ServiceUtil.isServiceRunning(context, WarningService.class)) {
