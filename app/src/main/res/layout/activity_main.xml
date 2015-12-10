@@ -48,5 +48,13 @@
         android:text="@string/notification_setting"
         android:id="@+id/btn_notification_setting"
         android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true" />
+        android:layout_alignParentStart="true" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/accessibility_setting"
+        android:id="@+id/btn_accessibility_setting"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true" />
 </RelativeLayout>

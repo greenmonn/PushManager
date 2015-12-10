@@ -17,7 +17,7 @@ import kr.ac.kaist.nmsl.pushmanager.Constants;
 public class DeferService extends Service {
     private static final String INTENT_FILTER = "kr.ac.kaist.nmsl.pushmanager";
     private static final int DEFER_DURATION = 10*1000;
-    private static final int VIBRATION_DURATION = 500;
+    private static final int VIBRATION_DURATION = 50;
 
     private AudioManager mAudioManager;
     private Vibrator mVibrator;

@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.view.View;
 import android.widget.Button;
 import android.widget.RadioButton;
@@ -54,7 +55,7 @@ public class MainActivity extends Activity {
         btnControl.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                switch(currentServiceState){
+                switch (currentServiceState) {
                     case DeferService:
                         context.stopService(new Intent(context, DeferService.class));
                         currentServiceState = ServiceState.NoService;
@@ -88,11 +89,21 @@ public class MainActivity extends Activity {
 
         // Initialize notification setting button
         final Button btnNotificationSetting = (Button) findViewById(R.id.btn_notification_setting);
-        btnNotificationSetting.setOnClickListener(new View.OnClickListener(){
+        btnNotificationSetting.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent settingIntent = new Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS");
                 startActivityForResult(settingIntent, ACTIVITY_RESULT_NOTIFICATION_LISTENER_SETTINGS);
+            }
+        });
+
+        // Initialize notification setting button
+        final Button btnAccessibilitySetting = (Button) findViewById(R.id.btn_accessibility_setting);
+        btnAccessibilitySetting.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent settingIntent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
+                startActivity(settingIntent);
             }
         });
     }
