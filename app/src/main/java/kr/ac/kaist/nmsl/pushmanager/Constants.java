@@ -6,4 +6,10 @@ package kr.ac.kaist.nmsl.pushmanager;
 public class Constants {
     public static final String DEBUG_TAG = "PM_DEBUG";
     public static final String TAG = "PM";
+
+    public static final long WARNING_DELAY_INTERVAL = 5000L; // In milliseconds.
+
+    public static final String[] WHITELIST_APPS = {
+            "kr.ac.kaist.nmsl.pushmanager", "com.android.systemui"
+    };
 }

@@ -27,6 +27,7 @@ public class NotificationService extends NotificationListenerService {
 
         Intent i = new  Intent(INTENT_FILTER);
         i.putExtra("command", "posted");
+        i.putExtra("package", pack);
         sendBroadcast(i);
     }
 
@@ -36,6 +37,7 @@ public class NotificationService extends NotificationListenerService {
 
         Intent i = new  Intent(INTENT_FILTER);
         i.putExtra("command","removed");
+        i.putExtra("package", sbn.getPackageName());
         sendBroadcast(i);
     }
 }
