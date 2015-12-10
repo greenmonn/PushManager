@@ -48,4 +48,12 @@
         android:text="@string/time_zero"
         android:layout_above="@+id/txt_service_status"
         android:layout_centerHorizontal="true" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Enable Admin"
+        android:id="@+id/btn_admin"
+        android:layout_above="@+id/btn_notification_setting"
+        android:layout_centerHorizontal="true" />
 </RelativeLayout>

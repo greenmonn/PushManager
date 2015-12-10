@@ -39,3 +39,6 @@ local.properties
 *.ipr
 *~
 *.swp
+
+app/google-services.json
+*Credentials.java

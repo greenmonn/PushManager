@@ -30,7 +30,7 @@ public class WarningService extends Service {
 
     private WarningServiceReceiver warningServiceReceiver = null;
 
-    private boolean isWarningShowing = false;
+    private long previousWarningAt = 0L;
 
     @Override
     public void onCreate(){
@@ -92,11 +92,33 @@ public class WarningService extends Service {
     class WarningServiceReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
+            String pack = intent.getStringExtra("package");
+            Log.d(Constants.TAG, "Package: "+pack);
             if(intent.getStringExtra("command").equals("posted")) {
-                showWarningLayout();
+                if( (System.currentTimeMillis() - previousWarningAt) >= Constants.WARNING_DELAY_INTERVAL && !isWhiteListedApp(pack)) {
+                    Log.d(Constants.TAG, "Showing warning message");
+                    showWarningLayout();
+                    previousWarningAt = System.currentTimeMillis();
+                } else {
+                    Log.d(Constants.TAG, "Too many warning messages...");
+                }
             } else if (intent.getStringExtra("command").equals("removed")) {
                 hideWarningLayout();
             }
+        }
+
+        private boolean isWhiteListedApp(String pack){
+            if(pack == null || pack.isEmpty()){
+                return true;
+            }
+
+            for(String s : Constants.WHITELIST_APPS){
+                if(s.equals(pack)){
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

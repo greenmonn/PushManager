@@ -14,12 +14,14 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
-import java.security.CodeSigner;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
+import com.parse.Parse;
+import com.parse.ParseInstallation;
 
 import kr.ac.kaist.nmsl.pushmanager.defer.DeferService;
 import kr.ac.kaist.nmsl.pushmanager.notification.NotificationService;
@@ -67,6 +69,10 @@ public class MainActivity extends Activity {
             public void onFinish() {
             }
         };
+
+        // Parse notification
+        Parse.initialize(this, Credentials.PARSE_APPLICATION_ID, Credentials.PARSE_CLIENT_KEY);
+        ParseInstallation.getCurrentInstallation().saveInBackground();
 
         // Check if service is already running or not
         if(ServiceUtil.isServiceRunning(context, WarningService.class)) {
