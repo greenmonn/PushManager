@@ -15,4 +15,11 @@
 
     <string name="warning_message">Hello?? \nYou are with a friend!\n Focus!</string>
     <string name="accessibility_setting">ACCESSIBILITY SETTING</string>
+
+    <string name="service_status_nothing">No service is running</string>
+    <string name="service_status_no_invention">No intervention</string>
+    <string name="service_status_warning">Warning service</string>
+    <string name="service_status_defer">Defer service</string>
+
+    <string name="time_zero">00:00</string>
 </resources>

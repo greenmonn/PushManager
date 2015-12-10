@@ -14,34 +14,6 @@
         android:layout_centerVertical="true"
         android:layout_centerHorizontal="true" />
 
-    <LinearLayout
-        android:orientation="vertical"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/btn_control"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="75dp">
-    <RadioGroup
-        android:id="@+id/radio_push_management_method"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
-            <RadioButton
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/defer"
-                android:textSize="20dp"
-                android:id="@+id/radio_defer"
-                android:checked="true"/>
-
-            <RadioButton
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/warning"
-                android:textSize="20dp"
-                android:id="@+id/radio_warning" />
-    </RadioGroup>
-    </LinearLayout>
-
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -57,4 +29,23 @@
         android:id="@+id/btn_accessibility_setting"
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="@string/service_status_nothing"
+        android:id="@+id/txt_service_status"
+        android:layout_above="@+id/btn_control"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="65dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:id="@+id/txt_ramaining_time"
+        android:text="@string/time_zero"
+        android:layout_above="@+id/txt_service_status"
+        android:layout_centerHorizontal="true" />
 </RelativeLayout>

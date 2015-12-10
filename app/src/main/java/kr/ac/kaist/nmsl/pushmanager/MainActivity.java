@@ -4,12 +4,17 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.provider.Settings;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
 
 import kr.ac.kaist.nmsl.pushmanager.defer.DeferService;
 import kr.ac.kaist.nmsl.pushmanager.notification.NotificationService;
@@ -23,17 +28,31 @@ public class MainActivity extends Activity {
 
     enum ServiceState{
         NoService,
-        WarningService,
-        DeferService
+        NoIntervention,
+        DeferService,
+        WarningService
     }
 
+    private static final int SERVICE_DURATION_ = 10*1000;
+
     private ServiceState currentServiceState;
+
+    private Timer mTimer;
+    private CountDownTimer mCountDownTimer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         this.context = getApplicationContext();
+        mCountDownTimer = new CountDownTimer(0,0) {
+            @Override
+            public void onTick(long millisUntilFinished) {
+            }
+            @Override
+            public void onFinish() {
+            }
+        };
 
         // Check if service is already running or not
         if(ServiceUtil.isServiceRunning(context, WarningService.class)) {
@@ -51,37 +70,39 @@ public class MainActivity extends Activity {
 
         // Initialize Button
         final Button btnControl = (Button) findViewById(R.id.btn_control);
-        final RadioGroup radioPushManagementMethod = (RadioGroup) findViewById(R.id.radio_push_management_method);
         btnControl.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 switch (currentServiceState) {
                     case DeferService:
-                        context.stopService(new Intent(context, DeferService.class));
-                        currentServiceState = ServiceState.NoService;
-                        updateUIComponents();
-                        break;
                     case WarningService:
-                        context.stopService(new Intent(context, WarningService.class));
-                        currentServiceState = ServiceState.NoService;
-                        updateUIComponents();
+                    case NoIntervention:
+                        stopAllServices();
                         break;
                     case NoService:
-                        int pushManagementMethodId = radioPushManagementMethod.getCheckedRadioButtonId();
-                        RadioButton selectedRadio = (RadioButton) findViewById(pushManagementMethodId);
-                        Toast.makeText(context, "Starting " + selectedRadio.getText(), Toast.LENGTH_SHORT).show();
-                        switch (pushManagementMethodId) {
-                            case R.id.radio_defer:
-                                context.startService(new Intent(context, DeferService.class));
-                                currentServiceState = ServiceState.DeferService;
-                                updateUIComponents();
-                                break;
-                            case R.id.radio_warning:
-                                context.startService(new Intent(context, WarningService.class));
-                                currentServiceState = ServiceState.WarningService;
-                                updateUIComponents();
-                                break;
-                        }
+                        Toast.makeText(context, "Start managing cellphone use", Toast.LENGTH_SHORT).show();
+                        startNoInterventionService();
+
+                        mTimer = new Timer();
+                        mTimer.scheduleAtFixedRate(new TimerTask() {
+                            @Override
+                            public void run() {
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        if (currentServiceState == ServiceState.NoIntervention) {
+                                            startDeferService();
+                                            startCountDownTimer(ServiceState.DeferService);
+                                        } else if (currentServiceState == ServiceState.DeferService) {
+                                            startWarningService();
+                                            startCountDownTimer(ServiceState.WarningService);
+                                        } else if (currentServiceState == ServiceState.WarningService) {
+                                            stopAllServices();
+                                        }
+                                    }
+                                });
+                            }
+                        }, SERVICE_DURATION_, SERVICE_DURATION_);
                         break;
                 }
             }
@@ -108,37 +129,90 @@ public class MainActivity extends Activity {
         });
     }
 
+    private void startWarningService(){
+        context.startService(new Intent(context, WarningService.class));
+        currentServiceState = ServiceState.WarningService;
+        updateUIComponents();
+    }
+
+    private void startDeferService(){
+        context.startService(new Intent(context, DeferService.class));
+        currentServiceState = ServiceState.DeferService;
+        updateUIComponents();
+    }
+
+    private void startNoInterventionService() {
+        currentServiceState = ServiceState.NoIntervention;
+        updateUIComponents();
+        startCountDownTimer(ServiceState.NoIntervention);
+        Log.d(Constants.DEBUG_TAG, "NoIntervention started");
+    }
+
+    private void stopAllServices(){
+        context.stopService(new Intent(context, WarningService.class));
+        context.stopService(new Intent(context, DeferService.class));
+        currentServiceState = ServiceState.NoService;
+        mTimer.cancel();
+        mCountDownTimer.cancel();
+        updateUIComponents();
+    }
+
+    private void startCountDownTimer(final ServiceState serviceState) {
+        mCountDownTimer = new CountDownTimer(SERVICE_DURATION_, 1000) {
+
+            @Override
+            public void onTick(long millisUntilFinished) {
+                final TextView txtRemainingTime = (TextView) findViewById(R.id.txt_ramaining_time);
+                String remaningTime = String.format("%02d:%02d (%d/%d)",
+                        TimeUnit.MILLISECONDS.toMinutes(millisUntilFinished),
+                        TimeUnit.MILLISECONDS.toSeconds(millisUntilFinished) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millisUntilFinished)),
+                        currentServiceState.ordinal(), ServiceState.values().length -1
+                        );
+                txtRemainingTime.setText(remaningTime);
+            }
+
+            @Override
+            public void onFinish() {
+                final TextView txtRemainingTime = (TextView) findViewById(R.id.txt_ramaining_time);
+                txtRemainingTime.setText(String.format(getString(R.string.time_zero) + " (%d/%d)", currentServiceState.ordinal(), ServiceState.values().length-1));
+
+                if (serviceState == ServiceState.DeferService) {
+                    context.stopService(new Intent(context, DeferService.class));
+                } else if (serviceState == ServiceState.WarningService) {
+                    context.stopService(new Intent(context, WarningService.class));
+                } else if (serviceState == ServiceState.NoIntervention) {
+                    Log.d(Constants.DEBUG_TAG, "NoIntervention ended");
+                }
+            }
+        };
+        mCountDownTimer.start();
+    }
+
     private void updateUIComponents(){
-        final RadioGroup radioPushManagementMethod = (RadioGroup) findViewById(R.id.radio_push_management_method);
-        final RadioButton radioWarning = (RadioButton) findViewById(R.id.radio_warning);
-        final RadioButton radioDefer = (RadioButton) findViewById(R.id.radio_defer);
         final Button btnControl = (Button) findViewById(R.id.btn_control);
+        final TextView txtRemainingTime = (TextView) findViewById(R.id.txt_ramaining_time);
+        final TextView txtServiceStatus = (TextView) findViewById(R.id.txt_service_status);
 
         if(this.currentServiceState == ServiceState.WarningService) {
             // Warning service is already running
             String stopServiceMessage = String.format("%s", getString(R.string.stop));
+            String serviceStatus = getString(R.string.service_status_warning);
             btnControl.setText(stopServiceMessage);
-
-            radioWarning.setChecked(true);
-            radioPushManagementMethod.setEnabled(false);
-            radioDefer.setEnabled(false);
-            radioWarning.setEnabled(false);
+            txtServiceStatus.setText(serviceStatus);
         } else if (this.currentServiceState == ServiceState.DeferService) {
             // Defer service is already running
             String stopServiceMessage = String.format("%s", getString(R.string.stop));
+            String serviceStatus = getString(R.string.service_status_defer);
             btnControl.setText(stopServiceMessage);
-
-            radioDefer.setChecked(true);
-            radioDefer.setEnabled(false);
-            radioWarning.setEnabled(false);
-            radioPushManagementMethod.setEnabled(false);
+            txtServiceStatus.setText(serviceStatus);
+        } else if (this.currentServiceState == ServiceState.NoIntervention) {
+            txtServiceStatus.setText(getString(R.string.service_status_no_invention));
+            ((Button) findViewById(R.id.btn_control)).setText(getString(R.string.stop));
         } else {
             // No service is running
             btnControl.setText(R.string.start);
-            
-            radioDefer.setEnabled(true);
-            radioWarning.setEnabled(true);
-            radioPushManagementMethod.setEnabled(true);
+            txtServiceStatus.setText(getString(R.string.service_status_nothing));
+            txtRemainingTime.setText(String.format(getString(R.string.time_zero) + " (%d/%d)", currentServiceState.ordinal(), ServiceState.values().length-1));
         }
     }
 }

@@ -66,6 +66,7 @@ public class DeferService extends Service {
         unregisterReceiver(mDeferServiceReceiver);
         mAudioManager.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
         mTimer.cancel();
+        Log.i(Constants.DEBUG_TAG, "DeferService destroyed.");
         super.onDestroy();
     }
 
