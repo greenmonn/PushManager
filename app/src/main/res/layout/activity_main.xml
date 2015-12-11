@@ -67,4 +67,33 @@
         android:layout_centerHorizontal="true"
         android:text="60" />
 
+    <RadioGroup
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/btn_control"
+        android:layout_above="@+id/btn_admin"
+        android:id="@+id/group_mode"
+        android:layout_alignStart="@+id/edt_duration"
+        android:layout_alignEnd="@+id/edt_duration">
+
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/no_intervention"
+            android:id="@+id/radio_btn_no_intervention"
+            android:checked="false" />
+
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/defer"
+            android:id="@+id/radio_btn_defer" />
+
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/warning"
+            android:id="@+id/radio_btn_warning" />
+    </RadioGroup>
+
 </RelativeLayout>

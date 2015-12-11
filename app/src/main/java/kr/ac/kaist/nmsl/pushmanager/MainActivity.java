@@ -13,6 +13,8 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -50,7 +52,6 @@ public class MainActivity extends Activity {
     private CountDownTimer mCountDownTimer;
 
     private DevicePolicyManager mDPM;
-    private ComponentName mDeviceAdminSample;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,14 +65,14 @@ public class MainActivity extends Activity {
         }
 
         this.context = getApplicationContext();
-        mCountDownTimer = new CountDownTimer(0,0) {
+        /*mCountDownTimer = new CountDownTimer(0,0) {
             @Override
             public void onTick(long millisUntilFinished) {
             }
             @Override
             public void onFinish() {
             }
-        };
+        };*/
         mDPM = (DevicePolicyManager)getSystemService(Context.DEVICE_POLICY_SERVICE);
 
         // Parse notification
@@ -108,34 +109,46 @@ public class MainActivity extends Activity {
                         stopAllServices();
                         break;
                     case NoService:
-                        SimpleDateFormat fileDateFormat = new SimpleDateFormat(FILE_UTIL_FILE_DATETIME_FORMAT);
-                        Constants.LOG_NAME = fileDateFormat.format(new Date());
-                        Constants.LOG_ENABLED = true;
                         Toast.makeText(context, "Start managing cellphone use", Toast.LENGTH_SHORT).show();
-                        startNoInterventionService();
-                        mDPM.lockNow();
 
                         mTimer = new Timer();
                         final long duration = Long.parseLong(((EditText)findViewById(R.id.edt_duration)).getText().toString()) * 1000L;
-                        mTimer.scheduleAtFixedRate(new TimerTask() {
+
+                        final RadioGroup radioPushManagementMethod = (RadioGroup) findViewById(R.id.group_mode);
+                        int pushManagementMethodId = radioPushManagementMethod.getCheckedRadioButtonId();
+
+                        SimpleDateFormat fileDateFormat = new SimpleDateFormat(FILE_UTIL_FILE_DATETIME_FORMAT);
+                        Constants.LOG_ENABLED = true;
+
+                        switch (pushManagementMethodId) {
+                            case R.id.radio_btn_no_intervention:
+                                Constants.LOG_NAME = fileDateFormat.format(new Date()) + "_" + ServiceState.NoIntervention.toString();
+                                startNoInterventionService();
+                                break;
+                            case R.id.radio_btn_defer:
+                                Constants.LOG_NAME = fileDateFormat.format(new Date()) + "_" + ServiceState.DeferService.toString();
+                                startDeferService();
+                                break;
+                            case R.id.radio_btn_warning:
+                                Constants.LOG_NAME = fileDateFormat.format(new Date()) + "_" + ServiceState.WarningService.toString();
+                                startWarningService();
+                                break;
+                        }
+
+                        startCountDownTimer();
+                        mTimer.schedule(new TimerTask() {
                             @Override
                             public void run() {
                                 runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
-                                        if (currentServiceState == ServiceState.NoIntervention) {
-                                            startDeferService();
-                                            startCountDownTimer(ServiceState.DeferService);
-                                        } else if (currentServiceState == ServiceState.DeferService) {
-                                            startWarningService();
-                                            startCountDownTimer(ServiceState.WarningService);
-                                        } else if (currentServiceState == ServiceState.WarningService) {
-                                            stopAllServices();
-                                        }
+                                        stopAllServices();
                                     }
                                 });
                             }
-                        }, duration, duration);
+                        }, duration);
+
+                        mDPM.lockNow();
                         break;
                 }
             }
@@ -169,6 +182,9 @@ public class MainActivity extends Activity {
                 startActivity(intent);
             }
         });
+
+        final RadioGroup groupMode = (RadioGroup) findViewById(R.id.group_mode);
+        groupMode.check(R.id.radio_btn_no_intervention);
     }
 
     private void startWarningService(){
@@ -195,7 +211,6 @@ public class MainActivity extends Activity {
     private void startNoInterventionService() {
         currentServiceState = ServiceState.NoIntervention;
         updateUIComponents();
-        startCountDownTimer(ServiceState.NoIntervention);
         Log.d(Constants.DEBUG_TAG, "NoIntervention started");
         if (Constants.LOG_ENABLED) {
             Util.writeLogToFile(context, Constants.LOG_NAME, "==============NoIntervention started===============");
@@ -209,42 +224,33 @@ public class MainActivity extends Activity {
         mTimer.cancel();
         mCountDownTimer.cancel();
         updateUIComponents();
+        Log.d(Constants.DEBUG_TAG, "All ended");
         if (Constants.LOG_ENABLED) {
             Util.writeLogToFile(context, Constants.LOG_NAME, "==============All ended===============");
             Constants.LOG_ENABLED = false;
         }
     }
 
-    private void startCountDownTimer(final ServiceState serviceState) {
+    private void startCountDownTimer() {
         final long duration = Long.parseLong(((EditText)findViewById(R.id.edt_duration)).getText().toString()) * 1000L;
         mCountDownTimer = new CountDownTimer(duration, 1000) {
 
             @Override
             public void onTick(long millisUntilFinished) {
                 final TextView txtRemainingTime = (TextView) findViewById(R.id.txt_ramaining_time);
-                String remaningTime = String.format("%02d:%02d (%d/%d)",
+                String remainingTime = String.format("%02d:%02d",
                         TimeUnit.MILLISECONDS.toMinutes(millisUntilFinished),
-                        TimeUnit.MILLISECONDS.toSeconds(millisUntilFinished) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millisUntilFinished)),
-                        currentServiceState.ordinal(), ServiceState.values().length -1
+                        TimeUnit.MILLISECONDS.toSeconds(millisUntilFinished) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millisUntilFinished))
                         );
-                txtRemainingTime.setText(remaningTime);
+                txtRemainingTime.setText(remainingTime);
             }
 
             @Override
             public void onFinish() {
                 final TextView txtRemainingTime = (TextView) findViewById(R.id.txt_ramaining_time);
-                txtRemainingTime.setText(String.format(getString(R.string.time_zero) + " (%d/%d)", currentServiceState.ordinal(), ServiceState.values().length-1));
-
-                if (serviceState == ServiceState.DeferService) {
-                    context.stopService(new Intent(context, DeferService.class));
-                } else if (serviceState == ServiceState.WarningService) {
-                    context.stopService(new Intent(context, WarningService.class));
-                } else if (serviceState == ServiceState.NoIntervention) {
-                    Log.d(Constants.DEBUG_TAG, "NoIntervention ended");
-                }
+                txtRemainingTime.setText(String.format(getString(R.string.time_zero), currentServiceState.ordinal(), ServiceState.values().length - 1));
             }
-        };
-        mCountDownTimer.start();
+        }.start();
     }
 
     private void updateUIComponents(){
@@ -271,7 +277,7 @@ public class MainActivity extends Activity {
             // No service is running
             btnControl.setText(R.string.start);
             txtServiceStatus.setText(getString(R.string.service_status_nothing));
-            txtRemainingTime.setText(String.format(getString(R.string.time_zero) + " (%d/%d)", currentServiceState.ordinal(), ServiceState.values().length-1));
+            txtRemainingTime.setText(String.format(getString(R.string.time_zero)));
         }
     }
 
