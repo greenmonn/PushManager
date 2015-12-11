@@ -16,8 +16,8 @@ import kr.ac.kaist.nmsl.pushmanager.Constants;
 
 public class DeferService extends Service {
     private static final String INTENT_FILTER = "kr.ac.kaist.nmsl.pushmanager";
-    private static final int DEFER_DURATION = 10*1000;
-    private static final int VIBRATION_DURATION = 50;
+
+    private static final int VIBRATION_DURATION = 500;
 
     private AudioManager mAudioManager;
     private Vibrator mVibrator;
@@ -40,6 +40,9 @@ public class DeferService extends Service {
 
         mVibrator = (Vibrator)getApplicationContext().getSystemService(Context.VIBRATOR_SERVICE);
 
+        long duration = (intent.getLongExtra("duration", 60*1000L) * 10 / 25);
+        Log.d(Constants.DEBUG_TAG, "Defer duration: " + duration);
+
         mTimer = new Timer();
         mTimer.scheduleAtFixedRate(new TimerTask() {
             @Override
@@ -50,7 +53,7 @@ public class DeferService extends Service {
                     Log.i(Constants.DEBUG_TAG, "Vibrated");
                 }
             }
-        }, DEFER_DURATION, DEFER_DURATION);
+        }, duration, duration);
 
         IntentFilter filter = new IntentFilter();
         filter.addAction(INTENT_FILTER);

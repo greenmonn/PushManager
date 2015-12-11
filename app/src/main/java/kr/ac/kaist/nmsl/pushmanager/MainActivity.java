@@ -1,6 +1,8 @@
 package kr.ac.kaist.nmsl.pushmanager;
 
 import android.app.Activity;
+import android.app.admin.DevicePolicyManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -10,6 +12,7 @@ import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -41,13 +44,13 @@ public class MainActivity extends Activity {
         DeferService,
         WarningService
     }
-
-    private static final int SERVICE_DURATION_ = 10*1000;
-
     private ServiceState currentServiceState;
 
     private Timer mTimer;
     private CountDownTimer mCountDownTimer;
+
+    private DevicePolicyManager mDPM;
+    private ComponentName mDeviceAdminSample;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,10 +72,15 @@ public class MainActivity extends Activity {
             public void onFinish() {
             }
         };
+        mDPM = (DevicePolicyManager)getSystemService(Context.DEVICE_POLICY_SERVICE);
 
         // Parse notification
-        Parse.initialize(this, Credentials.PARSE_APPLICATION_ID, Credentials.PARSE_CLIENT_KEY);
-        ParseInstallation.getCurrentInstallation().saveInBackground();
+        try {
+            Parse.initialize(this, Credentials.PARSE_APPLICATION_ID, Credentials.PARSE_CLIENT_KEY);
+            ParseInstallation.getCurrentInstallation().saveInBackground();
+        } catch (IllegalStateException e){
+            Log.e(Constants.TAG, e.getLocalizedMessage());
+        }
 
         // Check if service is already running or not
         if(ServiceUtil.isServiceRunning(context, WarningService.class)) {
@@ -105,8 +113,10 @@ public class MainActivity extends Activity {
                         Constants.LOG_ENABLED = true;
                         Toast.makeText(context, "Start managing cellphone use", Toast.LENGTH_SHORT).show();
                         startNoInterventionService();
+                        mDPM.lockNow();
 
                         mTimer = new Timer();
+                        final long duration = Long.parseLong(((EditText)findViewById(R.id.edt_duration)).getText().toString()) * 1000L;
                         mTimer.scheduleAtFixedRate(new TimerTask() {
                             @Override
                             public void run() {
@@ -125,7 +135,7 @@ public class MainActivity extends Activity {
                                     }
                                 });
                             }
-                        }, SERVICE_DURATION_, SERVICE_DURATION_);
+                        }, duration, duration);
                         break;
                 }
             }
@@ -150,6 +160,15 @@ public class MainActivity extends Activity {
                 startActivity(settingIntent);
             }
         });
+
+        final Button btnEnableAdmin = (Button) findViewById(R.id.btn_admin);
+        btnEnableAdmin.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(Settings.ACTION_SECURITY_SETTINGS);
+                startActivity(intent);
+            }
+        });
     }
 
     private void startWarningService(){
@@ -162,7 +181,10 @@ public class MainActivity extends Activity {
     }
 
     private void startDeferService(){
-        context.startService(new Intent(context, DeferService.class));
+        final long duration = Long.parseLong(((EditText)findViewById(R.id.edt_duration)).getText().toString()) * 1000L;
+        Intent intent = new Intent(context, DeferService.class);
+        intent.putExtra("duration", duration);
+        context.startService(intent);
         currentServiceState = ServiceState.DeferService;
         updateUIComponents();
         if (Constants.LOG_ENABLED) {
@@ -194,7 +216,8 @@ public class MainActivity extends Activity {
     }
 
     private void startCountDownTimer(final ServiceState serviceState) {
-        mCountDownTimer = new CountDownTimer(SERVICE_DURATION_, 1000) {
+        final long duration = Long.parseLong(((EditText)findViewById(R.id.edt_duration)).getText().toString()) * 1000L;
+        mCountDownTimer = new CountDownTimer(duration, 1000) {
 
             @Override
             public void onTick(long millisUntilFinished) {

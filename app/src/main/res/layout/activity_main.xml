@@ -56,4 +56,15 @@
         android:id="@+id/btn_admin"
         android:layout_above="@+id/btn_notification_setting"
         android:layout_centerHorizontal="true" />
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:inputType="number"
+        android:ems="10"
+        android:id="@+id/edt_duration"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:text="60" />
+
 </RelativeLayout>
