@@ -13,7 +13,7 @@
     <string name="ok">Okay</string>
     <string name="ignore">Whatever</string>
 
-    <string name="warning_message">Hello?? \nYou are with a friend!\n Focus!</string>
+    <string name="warning_message">You should be reading!\n Focus!</string>
     <string name="accessibility_setting">ACCESSIBILITY SETTING</string>
 
     <string name="service_status_nothing">No service is running</string>

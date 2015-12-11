@@ -75,14 +75,6 @@ public class MainActivity extends Activity {
         };*/
         mDPM = (DevicePolicyManager)getSystemService(Context.DEVICE_POLICY_SERVICE);
 
-        // Parse notification
-        try {
-            Parse.initialize(this, Credentials.PARSE_APPLICATION_ID, Credentials.PARSE_CLIENT_KEY);
-            ParseInstallation.getCurrentInstallation().saveInBackground();
-        } catch (IllegalStateException e){
-            Log.e(Constants.TAG, e.getLocalizedMessage());
-        }
-
         // Check if service is already running or not
         if(ServiceUtil.isServiceRunning(context, WarningService.class)) {
             currentServiceState = ServiceState.WarningService;

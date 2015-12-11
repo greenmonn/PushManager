@@ -1,5 +1,6 @@
 package kr.ac.kaist.nmsl.pushmanager.warning;
 
+import android.app.admin.DevicePolicyManager;
 import android.content.Context;
 import android.view.KeyEvent;
 import android.view.View;
@@ -32,6 +33,9 @@ public class WarningLayout extends RelativeLayout{
             public void onClick(View v) {
                 Toast.makeText(context, "Ok clicked", Toast.LENGTH_SHORT).show();
                 self.setVisibility(View.GONE);
+
+                DevicePolicyManager dpm = (DevicePolicyManager)context.getSystemService(Context.DEVICE_POLICY_SERVICE);
+                dpm.lockNow();
             }
         });
 

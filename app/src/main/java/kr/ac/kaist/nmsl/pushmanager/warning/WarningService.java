@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
+import android.os.Handler;
 import android.os.IBinder;
 import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
@@ -15,6 +16,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
+
+import java.util.TimerTask;
 
 import kr.ac.kaist.nmsl.pushmanager.Constants;
 
@@ -97,7 +100,12 @@ public class WarningService extends Service {
             if(intent.getStringExtra("command").equals("posted")) {
                 if( (System.currentTimeMillis() - previousWarningAt) >= Constants.WARNING_DELAY_INTERVAL && !isWhiteListedApp(pack)) {
                     Log.d(Constants.TAG, "Showing warning message");
-                    showWarningLayout();
+                    (new Handler()).postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            showWarningLayout();
+                        }
+                    }, Constants.WARNING_POPUP_SHOW_DELAY);
                     previousWarningAt = System.currentTimeMillis();
                 } else {
                     Log.d(Constants.TAG, "Too many warning messages...");
