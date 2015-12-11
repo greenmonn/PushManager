@@ -88,9 +88,9 @@
             android:layout_alignParentBottom="true"
             android:layout_centerHorizontal="true"
             android:text="Read more..."
-            android:textColor="#000000"
-            android:textSize="12dp"
-            android:textStyle="italic"/>
+            android:textColor="#bc231e"
+            android:textSize="24dp"
+            android:textStyle="italic|bold"/>
 
         <TextView
             android:layout_width="match_parent"

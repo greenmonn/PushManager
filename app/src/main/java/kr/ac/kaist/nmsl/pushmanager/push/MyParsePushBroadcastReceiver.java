@@ -27,7 +27,7 @@ import kr.ac.kaist.nmsl.pushmanager.warning.WarningLayout;
  */
 public class MyParsePushBroadcastReceiver  extends ParsePushBroadcastReceiver{
 
-    private PushNewsLayout pushNewsLayout = null;
+    private static PushNewsLayout pushNewsLayout = null;
 
     @Override
     protected void onPushReceive(Context context, Intent intent) {
@@ -55,8 +55,10 @@ public class MyParsePushBroadcastReceiver  extends ParsePushBroadcastReceiver{
     }
 
     private void addPushNewsLayout(Context context) {
-        if (pushNewsLayout != null){
-            return;
+        synchronized (this) {
+            if (pushNewsLayout != null) {
+                return;
+            }
         }
 
         WindowManager.LayoutParams layoutParams = null;
@@ -72,6 +74,7 @@ public class MyParsePushBroadcastReceiver  extends ParsePushBroadcastReceiver{
 
         pushNewsLayout = new PushNewsLayout(context, null);
 
+        Log.d(Constants.TAG, "NewsPush AddView called");
         windowManager.addView(pushNewsLayout, layoutParams);
 
         pushNewsLayout.setVisibility(View.GONE);
@@ -119,6 +122,9 @@ public class MyParsePushBroadcastReceiver  extends ParsePushBroadcastReceiver{
             pushNewsLayout.setNewsTitle(webContent.title);
             pushNewsLayout.setNewsContent(webContent.content);
             pushNewsLayout.setNewsURL(webContent.URL);
+            if(pushNewsLayout.getVisibility() == View.VISIBLE){
+                pushNewsLayout.setVisibility(View.GONE);
+            }
             pushNewsLayout.setVisibility(View.VISIBLE);
         }
     }
