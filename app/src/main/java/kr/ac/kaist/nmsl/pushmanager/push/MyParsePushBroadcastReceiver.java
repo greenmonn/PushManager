@@ -1,9 +1,18 @@
 package kr.ac.kaist.nmsl.pushmanager.push;
 
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.PixelFormat;
+import android.media.Ringtone;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Vibrator;
+import android.provider.Settings;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
@@ -20,6 +29,7 @@ import org.jsoup.select.Elements;
 import java.net.URL;
 
 import kr.ac.kaist.nmsl.pushmanager.Constants;
+import kr.ac.kaist.nmsl.pushmanager.R;
 import kr.ac.kaist.nmsl.pushmanager.warning.WarningLayout;
 
 /**
@@ -71,6 +81,7 @@ public class MyParsePushBroadcastReceiver  extends ParsePushBroadcastReceiver{
                 WindowManager.LayoutParams.TYPE_PHONE,
                 WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
                 PixelFormat.TRANSLUCENT);
+        layoutParams.flags &= WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED;
 
         pushNewsLayout = new PushNewsLayout(context, null);
 
@@ -126,6 +137,29 @@ public class MyParsePushBroadcastReceiver  extends ParsePushBroadcastReceiver{
                 pushNewsLayout.setVisibility(View.GONE);
             }
             pushNewsLayout.setVisibility(View.VISIBLE);
+
+            NotificationCompat.Builder builder =
+                    new NotificationCompat.Builder(context)
+                            .setSmallIcon(R.mipmap.ic_launcher)
+                            .setContentTitle(webContent.title)
+                            .setContentText(webContent.content);
+            builder.setVibrate(new long[]{1000, 1000});
+            builder.setSound(Settings.System.DEFAULT_NOTIFICATION_URI);
+            builder.setAutoCancel(true);
+
+            Uri uri = Uri.parse(webContent.URL);
+            Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            PendingIntent resultPendingIntent = PendingIntent.getActivity(
+                    context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT
+            );
+            builder.setContentIntent(resultPendingIntent);
+
+            int notificationID = 1923;
+            NotificationManager notiManager =
+                    (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+            // notificationID allows you to update the notification later on. //
+            notiManager.notify(notificationID, builder.build());
         }
     }
 }

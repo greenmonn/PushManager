@@ -24,4 +24,5 @@ dependencies {
     compile 'com.parse.bolts:bolts-android:1.+'
     compile 'com.parse:parse-android:1.+'
     compile 'org.jsoup:jsoup:1.7.2'
+    compile 'com.android.support:support-v4:+'
 }

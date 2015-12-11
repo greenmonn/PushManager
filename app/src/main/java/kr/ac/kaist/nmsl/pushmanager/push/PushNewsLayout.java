@@ -26,6 +26,7 @@ public class PushNewsLayout extends RelativeLayout{
         this.self = this;
 
         inflate(context, R.layout.push_news_layout, this);
+        
 
         Button btnOkay = (Button) findViewById(R.id.btn_news_ok);
         btnOkay.setOnClickListener(new View.OnClickListener(){
