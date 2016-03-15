@@ -45,12 +45,12 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:id="@+id/btn_ok"
-                android:text="@string/ok"/>
+                android:text="Check later"/>
             <Button
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:id="@+id/btn_ignore"
-                android:text="@string/ignore"/>
+                android:text="Check now"/>
         </LinearLayout>
     </RelativeLayout>
 </RelativeLayout>

@@ -37,7 +37,7 @@ import kr.ac.kaist.nmsl.pushmanager.warning.WarningLayout;
  */
 public class MyParsePushBroadcastReceiver  extends ParsePushBroadcastReceiver{
 
-    private static PushNewsLayout pushNewsLayout = null;
+    private PushNewsLayout pushNewsLayout = null;
 
     @Override
     protected void onPushReceive(Context context, Intent intent) {
@@ -76,12 +76,12 @@ public class MyParsePushBroadcastReceiver  extends ParsePushBroadcastReceiver{
 
         windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
         layoutParams = new WindowManager.LayoutParams(
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.MATCH_PARENT,
+                WindowManager.LayoutParams.MATCH_PARENT,
                 WindowManager.LayoutParams.TYPE_PHONE,
                 WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
                 PixelFormat.TRANSLUCENT);
-        layoutParams.flags &= WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED;
+        layoutParams.flags |= WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED;
 
         pushNewsLayout = new PushNewsLayout(context, null);
 
@@ -92,6 +92,7 @@ public class MyParsePushBroadcastReceiver  extends ParsePushBroadcastReceiver{
     }
 
     class WebContent {
+        public String type;
         public String title;
         public String URL;
         public String content;
@@ -107,16 +108,26 @@ public class MyParsePushBroadcastReceiver  extends ParsePushBroadcastReceiver{
         protected WebContent doInBackground(String ... urls) {
             try {
                 String url = urls[0];
-                //Document doc = Jsoup.parse(new URL(url).openStream(), "EUC-KR", url);
-                Document doc = Jsoup.connect(urls[0]).get();
-                Elements title = doc.getElementsByAttributeValue("property", "og:title");
-                Elements content = doc.getElementsByAttributeValue("property", "og:description");
 
                 WebContent webContent = new WebContent();
-                webContent.title = title.attr("content");
-                webContent.content = content.attr("content");
-                webContent.URL = urls[0];
 
+                if(url.startsWith("http")) {
+                    //Document doc = Jsoup.parse(new URL(url).openStream(), "EUC-KR", url);
+                    Document doc = Jsoup.connect(urls[0]).get();
+                    Elements title = doc.getElementsByAttributeValue("property", "og:title");
+                    Elements content = doc.getElementsByAttributeValue("property", "og:description");
+
+                    webContent.type = "News";
+                    webContent.title = title.attr("content");
+                    webContent.content = content.attr("content");
+                    webContent.URL = urls[0];
+                } else {
+                    String[] tokens = url.split("_");
+                    webContent.type = "Question";
+                    webContent.title = tokens[0].trim();
+                    webContent.content = tokens[1].trim();
+                    webContent.URL = "";
+                }
                 return webContent;
             } catch (Exception e){
                 Log.e(Constants.TAG, "Failed to parse web.");
@@ -133,6 +144,7 @@ public class MyParsePushBroadcastReceiver  extends ParsePushBroadcastReceiver{
             pushNewsLayout.setNewsTitle(webContent.title);
             pushNewsLayout.setNewsContent(webContent.content);
             pushNewsLayout.setNewsURL(webContent.URL);
+            pushNewsLayout.updateViews(webContent.type);
             if(pushNewsLayout.getVisibility() == View.VISIBLE){
                 pushNewsLayout.setVisibility(View.GONE);
             }
