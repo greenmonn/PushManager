@@ -17,7 +17,7 @@ public class MyApplication extends Application{
 
         // Parse notification
         try {
-            Parse.initialize(this, Credentials.PARSE_APPLICATION_ID, Credentials.PARSE_CLIENT_KEY);
+            Parse.initialize(this, Constants.PARSE_APPLICATION_ID, Constants.PARSE_CLIENT_KEY);
             ParseInstallation.getCurrentInstallation().saveInBackground();
         } catch (IllegalStateException e){
             Log.e(Constants.TAG, e.getLocalizedMessage());

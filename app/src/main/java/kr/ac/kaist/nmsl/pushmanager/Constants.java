@@ -17,4 +17,7 @@ public class Constants {
     public static final String[] WHITELIST_APPS = {
             //"kr.ac.kaist.nmsl.pushmanager", "com.android.systemui"
     };
+
+    public static final String PARSE_APPLICATION_ID = "LF8jevBSVvJpDgrwkZP7RP7Yhpxq6MVIEldFfSLq";
+    public static final String PARSE_CLIENT_KEY= "2TIot30hqRKDNNTjbBQ8u0ubetp11B6Lxxfd8TwU";
 }
