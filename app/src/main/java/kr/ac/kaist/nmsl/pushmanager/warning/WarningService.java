@@ -95,9 +95,9 @@ public class WarningService extends Service {
     class WarningServiceReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
-            String pack = intent.getStringExtra("package");
+            String pack = intent.getStringExtra("notification_package");
             Log.d(Constants.TAG, "Package: "+pack);
-            if(intent.getStringExtra("command").equals("posted")) {
+            if(intent.getStringExtra("notification_action").equals("posted")) {
                 if( (System.currentTimeMillis() - previousWarningAt) >= Constants.WARNING_DELAY_INTERVAL && !isWhiteListedApp(pack)) {
                     Log.d(Constants.TAG, "Showing warning message");
                     (new Handler()).postDelayed(new Runnable() {
@@ -110,7 +110,7 @@ public class WarningService extends Service {
                 } else {
                     Log.d(Constants.TAG, "Too many warning messages...");
                 }
-            } else if (intent.getStringExtra("command").equals("removed")) {
+            } else if (intent.getStringExtra("notification_action").equals("removed")) {
                 hideWarningLayout();
             }
         }

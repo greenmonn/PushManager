@@ -79,15 +79,18 @@ public class DeferService extends Service {
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
+    //Policy checker
     class DeferServiceReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
-            if(intent.getStringExtra("command").equals("posted")) {
-                Log.i(Constants.DEBUG_TAG, "Notification incremented");
-                mNotificationCount++;
-            } else if (intent.getStringExtra("command").equals("removed")) {
-                Log.i(Constants.DEBUG_TAG, "Notification decremented");
-                mNotificationCount--;
+            if (intent.hasExtra("notification_action")) {
+                if (intent.getStringExtra("notification_action").equals("posted")) {
+                    Log.i(Constants.DEBUG_TAG, "Notification incremented");
+                    mNotificationCount++;
+                } else if (intent.getStringExtra("notification_action").equals("removed")) {
+                    Log.i(Constants.DEBUG_TAG, "Notification decremented");
+                    mNotificationCount--;
+                }
             }
         }
     }

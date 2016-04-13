@@ -76,9 +76,10 @@ public class MainActivity extends Activity {
         mDPM = (DevicePolicyManager)getSystemService(Context.DEVICE_POLICY_SERVICE);
 
         // Check if service is already running or not
-        if(ServiceUtil.isServiceRunning(context, WarningService.class)) {
-            currentServiceState = ServiceState.WarningService;
-        } else if (ServiceUtil.isServiceRunning(context, DeferService.class)){
+        //if(ServiceUtil.isServiceRunning(context, WarningService.class)) {
+        //    currentServiceState = ServiceState.WarningService;
+        //} else if (ServiceUtil.isServiceRunning(context, DeferService.class)){
+        if (ServiceUtil.isServiceRunning(context, DeferService.class)){
             currentServiceState = ServiceState.DeferService;
         } else {
             currentServiceState = ServiceState.NoService;
@@ -96,7 +97,7 @@ public class MainActivity extends Activity {
             public void onClick(View v) {
                 switch (currentServiceState) {
                     case DeferService:
-                    case WarningService:
+                    //case WarningService:
                     case NoIntervention:
                         stopAllServices();
                         break;
@@ -121,10 +122,10 @@ public class MainActivity extends Activity {
                                 Constants.LOG_NAME = fileDateFormat.format(new Date()) + "_" + ServiceState.DeferService.toString();
                                 startDeferService();
                                 break;
-                            case R.id.radio_btn_warning:
-                                Constants.LOG_NAME = fileDateFormat.format(new Date()) + "_" + ServiceState.WarningService.toString();
-                                startWarningService();
-                                break;
+                            //case R.id.radio_btn_warning:
+                            //    Constants.LOG_NAME = fileDateFormat.format(new Date()) + "_" + ServiceState.WarningService.toString();
+                            //    startWarningService();
+                            //    break;
                         }
 
                         startCountDownTimer();
@@ -179,14 +180,14 @@ public class MainActivity extends Activity {
         groupMode.check(R.id.radio_btn_no_intervention);
     }
 
-    private void startWarningService(){
+    /*private void startWarningService(){
         context.startService(new Intent(context, WarningService.class));
         currentServiceState = ServiceState.WarningService;
         updateUIComponents();
         if (Constants.LOG_ENABLED) {
             Util.writeLogToFile(context, Constants.LOG_NAME, "==============Warning started===============");
         }
-    }
+    }*/
 
     private void startDeferService(){
         final long duration = Long.parseLong(((EditText)findViewById(R.id.edt_duration)).getText().toString()) * 1000L;
@@ -210,7 +211,7 @@ public class MainActivity extends Activity {
     }
 
     private void stopAllServices(){
-        context.stopService(new Intent(context, WarningService.class));
+        //context.stopService(new Intent(context, WarningService.class));
         context.stopService(new Intent(context, DeferService.class));
         currentServiceState = ServiceState.NoService;
         mTimer.cancel();
@@ -250,13 +251,14 @@ public class MainActivity extends Activity {
         final TextView txtRemainingTime = (TextView) findViewById(R.id.txt_ramaining_time);
         final TextView txtServiceStatus = (TextView) findViewById(R.id.txt_service_status);
 
-        if(this.currentServiceState == ServiceState.WarningService) {
-            // Warning service is already running
-            String stopServiceMessage = String.format("%s", getString(R.string.stop));
-            String serviceStatus = getString(R.string.service_status_warning);
-            btnControl.setText(stopServiceMessage);
-            txtServiceStatus.setText(serviceStatus);
-        } else if (this.currentServiceState == ServiceState.DeferService) {
+        //if(this.currentServiceState == ServiceState.WarningService) {
+        //    // Warning service is already running
+        //    String stopServiceMessage = String.format("%s", getString(R.string.stop));
+        //    String serviceStatus = getString(R.string.service_status_warning);
+        //    btnControl.setText(stopServiceMessage);
+        //    txtServiceStatus.setText(serviceStatus);
+        //} else if (this.currentServiceState == ServiceState.DeferService) {
+        if (this.currentServiceState == ServiceState.DeferService) {
             // Defer service is already running
             String stopServiceMessage = String.format("%s", getString(R.string.stop));
             String serviceStatus = getString(R.string.service_status_defer);

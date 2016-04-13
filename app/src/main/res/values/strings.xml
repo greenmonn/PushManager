@@ -6,7 +6,7 @@
 
     <string name="start">Start</string>
     <string name="stop">Stop</string>
-    <string name="defer">Defer</string>
+    <string name="defer">Managed Mode</string>
     <string name="warning">Warning</string>
     <string name="notification_setting">Notification Setting</string>
 
@@ -22,5 +22,5 @@
     <string name="service_status_defer">Defer service</string>
 
     <string name="time_zero">00:00</string>
-    <string name="no_intervention">No intervention</string>
+    <string name="no_intervention">Default Mode</string>
 </resources>

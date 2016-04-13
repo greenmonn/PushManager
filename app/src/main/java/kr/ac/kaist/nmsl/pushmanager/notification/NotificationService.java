@@ -26,8 +26,8 @@ public class NotificationService extends NotificationListenerService {
         Log.i(Constants.DEBUG_TAG, "Notification received: " + pack);
 
         Intent i = new  Intent(INTENT_FILTER);
-        i.putExtra("command", "posted");
-        i.putExtra("package", pack);
+        i.putExtra("notification_action", "posted");
+        i.putExtra("notification_package", pack);
         sendBroadcast(i);
     }
 
@@ -36,8 +36,8 @@ public class NotificationService extends NotificationListenerService {
         Log.i(Constants.DEBUG_TAG, "Notification Removed");
 
         Intent i = new  Intent(INTENT_FILTER);
-        i.putExtra("command","removed");
-        i.putExtra("package", sbn.getPackageName());
+        i.putExtra("notification_action","removed");
+        i.putExtra("notification_package", sbn.getPackageName());
         sendBroadcast(i);
     }
 }
