@@ -41,7 +41,7 @@ public class EventRecorderService extends AccessibilityService {
                 "%s, %s, %s, %s, %s",
                 event.getEventTime(), AccessibilityEvent.eventTypeToString(event.getEventType()), event.getClassName(), event.getPackageName(),
                 getEventText(event));
-        Log.d(Constants.DEBUG_TAG, msg);
+        //Log.d(Constants.DEBUG_TAG, msg);
         if (Constants.LOG_ENABLED) {
             Util.writeLogToFile(getApplicationContext(), Constants.LOG_NAME, msg);
         }

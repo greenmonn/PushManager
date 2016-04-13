@@ -1,19 +1,20 @@
 package kr.ac.kaist.nmsl.pushmanager;
 
 import android.app.Activity;
+import android.app.PendingIntent;
 import android.app.admin.DevicePolicyManager;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Environment;
 import android.provider.Settings;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -25,16 +26,18 @@ import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
-import com.parse.Parse;
-import com.parse.ParseInstallation;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.ActivityRecognition;
+
+import kr.ac.kaist.nmsl.pushmanager.activity.ActivityRecognitionIntentService;
 import kr.ac.kaist.nmsl.pushmanager.defer.DeferService;
 import kr.ac.kaist.nmsl.pushmanager.notification.NotificationService;
 import kr.ac.kaist.nmsl.pushmanager.util.ServiceUtil;
 import kr.ac.kaist.nmsl.pushmanager.util.Util;
-import kr.ac.kaist.nmsl.pushmanager.warning.WarningService;
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener{
     private static final int ACTIVITY_RESULT_NOTIFICATION_LISTENER_SETTINGS = 142;
     public static final String FILE_UTIL_FILE_DATETIME_FORMAT = "yyyyMMdd_HHmmss";
 
@@ -52,6 +55,8 @@ public class MainActivity extends Activity {
     private CountDownTimer mCountDownTimer;
 
     private DevicePolicyManager mDPM;
+
+    private GoogleApiClient mGoogleApiClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,6 +91,14 @@ public class MainActivity extends Activity {
         }
 
         context.startService(new Intent(context, NotificationService.class));
+
+        //Google API Client
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addApi(ActivityRecognition.API)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .build();
+        mGoogleApiClient.connect();
 
         // Update UI accordingly
         updateUIComponents();
@@ -199,6 +212,7 @@ public class MainActivity extends Activity {
         if (Constants.LOG_ENABLED) {
             Util.writeLogToFile(context, Constants.LOG_NAME, "==============Defer started===============");
         }
+        ActivityRecognition.ActivityRecognitionApi.requestActivityUpdates(mGoogleApiClient, Constants.ACTIVITY_REQUEST_DURATION, getActivityDetectionPendingIntent());
     }
 
     private void startNoInterventionService() {
@@ -208,6 +222,7 @@ public class MainActivity extends Activity {
         if (Constants.LOG_ENABLED) {
             Util.writeLogToFile(context, Constants.LOG_NAME, "==============NoIntervention started===============");
         }
+        ActivityRecognition.ActivityRecognitionApi.requestActivityUpdates(mGoogleApiClient, Constants.ACTIVITY_REQUEST_DURATION, getActivityDetectionPendingIntent());
     }
 
     private void stopAllServices(){
@@ -221,6 +236,11 @@ public class MainActivity extends Activity {
         if (Constants.LOG_ENABLED) {
             Util.writeLogToFile(context, Constants.LOG_NAME, "==============All ended===============");
             Constants.LOG_ENABLED = false;
+        }
+
+        if (mGoogleApiClient.isConnected()) {
+            Log.i(Constants.TAG, "google activity request removed");
+            ActivityRecognition.ActivityRecognitionApi.removeActivityUpdates(mGoogleApiClient, getActivityDetectionPendingIntent());
         }
     }
 
@@ -276,8 +296,36 @@ public class MainActivity extends Activity {
     }
 
     @Override
+    protected void onStop() {
+        super.onStop();
+    }
+
+    @Override
     protected void onDestroy() {
+        mGoogleApiClient.disconnect();
         super.onDestroy();
         //Constants.LOG_ENABLED = false;
+    }
+
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
+    }
+
+    public PendingIntent getActivityDetectionPendingIntent() {
+        Intent intent = new Intent( this, ActivityRecognitionIntentService.class );
+        PendingIntent pendingIntent = PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        return pendingIntent;
     }
 }

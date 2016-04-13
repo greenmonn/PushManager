@@ -9,13 +9,18 @@ import android.media.AudioManager;
 import android.os.IBinder;
 import android.os.Vibrator;
 import android.util.Log;
+import android.widget.Toast;
+
+import com.google.android.gms.location.ActivityRecognitionResult;
+import com.google.android.gms.location.DetectedActivity;
 
 import java.util.*;
 
 import kr.ac.kaist.nmsl.pushmanager.Constants;
 
 public class DeferService extends Service {
-    private static final String INTENT_FILTER = "kr.ac.kaist.nmsl.pushmanager";
+    private static final String INTENT_FILTER_NOTIFICATION = "kr.ac.kaist.nmsl.pushmanager.notification";
+    private static final String INTENT_FILTER_ACTIVITY = "kr.ac.kaist.nmsl.pushmanager.action.activity";
 
     private static final int VIBRATION_DURATION = 500;
 
@@ -56,7 +61,8 @@ public class DeferService extends Service {
         }, duration, duration);
 
         IntentFilter filter = new IntentFilter();
-        filter.addAction(INTENT_FILTER);
+        filter.addAction(INTENT_FILTER_ACTIVITY);
+        filter.addAction(INTENT_FILTER_NOTIFICATION);
         registerReceiver(mDeferServiceReceiver, filter);
 
         Log.i(Constants.DEBUG_TAG, "DeferService started.");
@@ -79,11 +85,51 @@ public class DeferService extends Service {
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
-    //Policy checker
+    private String getActivityName(int activityType) {
+        String activityName = "unknown";
+        switch(activityType) {
+            case DetectedActivity.IN_VEHICLE: {
+                activityName = "vehicle";
+                break;
+            }
+            case DetectedActivity.ON_BICYCLE: {
+                activityName = "bicycle";
+                break;
+            }
+            case DetectedActivity.ON_FOOT: {
+                activityName = "foot";
+                break;
+            }
+            case DetectedActivity.RUNNING: {
+                activityName = "running";
+                break;
+            }
+            case DetectedActivity.STILL: {
+                activityName = "still";
+                break;
+            }
+            case DetectedActivity.TILTING: {
+                activityName = "tilting";
+                break;
+            }
+            case DetectedActivity.WALKING: {
+                activityName = "walking";
+                break;
+            }
+            case DetectedActivity.UNKNOWN: {
+                activityName = "unknown";
+                break;
+            }
+        }
+
+        return activityName;
+    }
+
+    //TODO: management policy to be added!!
     class DeferServiceReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (intent.hasExtra("notification_action")) {
+            if (intent.getAction().equals(INTENT_FILTER_NOTIFICATION)){
                 if (intent.getStringExtra("notification_action").equals("posted")) {
                     Log.i(Constants.DEBUG_TAG, "Notification incremented");
                     mNotificationCount++;
@@ -91,6 +137,13 @@ public class DeferService extends Service {
                     Log.i(Constants.DEBUG_TAG, "Notification decremented");
                     mNotificationCount--;
                 }
+            }
+
+            if (intent.getAction().equals(INTENT_FILTER_ACTIVITY)) {
+                int prob = intent.getIntExtra("activity_probability", 0);
+                String name = getActivityName(intent.getIntExtra("activity_type", -1));
+                Log.d(Constants.DEBUG_TAG, "[Detected Activity] " + name + ": " + prob);
+                Toast.makeText(context, "[Detected Activity] " + name + ": " + prob, Toast.LENGTH_SHORT).show();
             }
         }
     }

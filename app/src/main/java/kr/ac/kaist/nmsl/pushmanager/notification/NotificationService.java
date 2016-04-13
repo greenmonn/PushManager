@@ -9,7 +9,7 @@ import android.util.Log;
 import kr.ac.kaist.nmsl.pushmanager.Constants;
 
 public class NotificationService extends NotificationListenerService {
-    private static final String INTENT_FILTER = "kr.ac.kaist.nmsl.pushmanager";
+    private static final String INTENT_FILTER = "kr.ac.kaist.nmsl.pushmanager.action.notification";
 
     public NotificationService() {
     }

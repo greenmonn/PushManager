@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="kr.ac.kaist.nmsl.pushmanager" >
+    package="kr.ac.kaist.nmsl.pushmanager">
 
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="com.google.android.gms.permission.ACTIVITY_RECOGNITION" />
 
     <!-- [START] Parse-related -->
     <uses-permission android:name="android.permission.INTERNET" />
@@ -20,21 +21,22 @@
       IMPORTANT: Change "com.parse.starter.permission.C2D_MESSAGE" in the lines below
       to match your app's package name + ".permission.C2D_MESSAGE".
     -->
-    <permission android:protectionLevel="signature"
-        android:name="kr.ac.kaist.nmsl.pushmanager.permission.C2D_MESSAGE" />
-    <uses-permission android:name="kr.ac.kaist.nmsl.pushmanager.permission.C2D_MESSAGE" />
-    <!-- [END] Parse-related -->
+    <permission
+        android:name="kr.ac.kaist.nmsl.pushmanager.permission.C2D_MESSAGE"
+        android:protectionLevel="signature" />
 
+    <uses-permission android:name="kr.ac.kaist.nmsl.pushmanager.permission.C2D_MESSAGE" />
+
+    <!-- [END] Parse-related -->
     <application
+        android:name=".MyApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/AppTheme"
-        android:name="kr.ac.kaist.nmsl.pushmanager.MyApplication"
-        >
+        android:theme="@style/AppTheme">
         <activity
             android:name=".MainActivity"
-            android:label="@string/app_name" >
+            android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -45,21 +47,20 @@
         <service
             android:name=".defer.DeferService"
             android:enabled="true"
-            android:exported="true" >
+            android:exported="true">
             <intent-filter>
-                <action android:name="android.intent.action.MEDIA_BUTTON"  />
+                <action android:name="android.intent.action.MEDIA_BUTTON" />
             </intent-filter>
         </service>
         <service
             android:name=".warning.WarningService"
             android:enabled="true"
-            android:exported="true" >
-        </service>
+            android:exported="true" />
         <service
             android:name=".notification.NotificationService"
             android:enabled="true"
             android:exported="true"
-            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE" >
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
             <intent-filter>
                 <action android:name="android.service.notification.NotificationListenerService" />
             </intent-filter>
@@ -72,18 +73,22 @@
             <intent-filter>
                 <action android:name="android.accessibilityservice.AccessibilityService" />
             </intent-filter>
+
             <accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
                 android:accessibilityEventTypes="typeAllMask"
                 android:accessibilityFeedbackType="feedbackGeneric"
                 android:notificationTimeout="100" />
         </service>
 
-        <receiver android:name="kr.ac.kaist.nmsl.pushmanager.notification.AdminReceiver"
-            android:label="@string/app_name"
+        <receiver
+            android:name=".notification.AdminReceiver"
             android:description="@string/app_name"
+            android:label="@string/app_name"
             android:permission="android.permission.BIND_DEVICE_ADMIN">
-            <meta-data android:name="android.app.device_admin"
+            <meta-data
+                android:name="android.app.device_admin"
                 android:resource="@xml/device_admin_sample" />
+
             <intent-filter>
                 <action android:name="android.app.action.DEVICE_ADMIN_ENABLED" />
             </intent-filter>
@@ -91,7 +96,9 @@
 
         <!-- [START] Parse-related -->
         <service android:name="com.parse.PushService" />
-        <receiver android:name="kr.ac.kaist.nmsl.pushmanager.push.MyParsePushBroadcastReceiver"
+
+        <receiver
+            android:name=".push.MyParsePushBroadcastReceiver"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.parse.push.intent.RECEIVE" />
@@ -99,19 +106,21 @@
                 <action android:name="com.parse.push.intent.OPEN" />
             </intent-filter>
         </receiver>
-        <receiver android:name="com.parse.GcmBroadcastReceiver"
+        <receiver
+            android:name="com.parse.GcmBroadcastReceiver"
             android:permission="com.google.android.c2dm.permission.SEND">
             <intent-filter>
                 <action android:name="com.google.android.c2dm.intent.RECEIVE" />
                 <action android:name="com.google.android.c2dm.intent.REGISTRATION" />
 
-                <!--
-                  IMPORTANT: Change "com.parse.starter" to match your app's package name.
-                -->
+                <!-- IMPORTANT: Change "com.parse.starter" to match your app's package name. -->
                 <category android:name="kr.ac.kaist.nmsl.pushmanager" />
             </intent-filter>
         </receiver>
         <!-- [END] Parse-related -->
+        <service
+            android:name=".activity.ActivityRecognitionIntentService"
+            android:exported="false"></service>
     </application>
 
 </manifest>
