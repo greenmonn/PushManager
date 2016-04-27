@@ -3,14 +3,18 @@ package kr.ac.kaist.nmsl.pushmanager;
 import android.app.Activity;
 import android.app.PendingIntent;
 import android.app.admin.DevicePolicyManager;
+import android.bluetooth.BluetoothAdapter;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Environment;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -22,6 +26,7 @@ import android.widget.Toast;
 import java.io.File;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -31,7 +36,10 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.ActivityRecognition;
 
+import org.altbeacon.beacon.Beacon;
+
 import kr.ac.kaist.nmsl.pushmanager.activity.ActivityRecognitionIntentService;
+import kr.ac.kaist.nmsl.pushmanager.ble.BLEService;
 import kr.ac.kaist.nmsl.pushmanager.defer.DeferService;
 import kr.ac.kaist.nmsl.pushmanager.notification.NotificationService;
 import kr.ac.kaist.nmsl.pushmanager.util.ServiceUtil;
@@ -58,6 +66,8 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 
     private GoogleApiClient mGoogleApiClient;
 
+    private MainActivityBroadcastReceiver mBroadcastReceiver;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -80,6 +90,8 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
         };*/
         mDPM = (DevicePolicyManager)getSystemService(Context.DEVICE_POLICY_SERVICE);
 
+        mBroadcastReceiver = new MainActivityBroadcastReceiver();
+
         // Check if service is already running or not
         //if(ServiceUtil.isServiceRunning(context, WarningService.class)) {
         //    currentServiceState = ServiceState.WarningService;
@@ -91,6 +103,7 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
         }
 
         context.startService(new Intent(context, NotificationService.class));
+        context.startService(new Intent(context, BLEService.class));
 
         //Google API Client
         mGoogleApiClient = new GoogleApiClient.Builder(this)
@@ -295,12 +308,27 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
     }
 
     @Override
+    protected void onResume() {
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(Constants.INTENT_FILTER_BLE);
+        LocalBroadcastManager.getInstance(this).registerReceiver(mBroadcastReceiver, filter);
+        super.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mBroadcastReceiver);
+        super.onPause();
+    }
+
+    @Override
     protected void onStop() {
         super.onStop();
     }
 
     @Override
     protected void onDestroy() {
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mBroadcastReceiver);
         mGoogleApiClient.disconnect();
         super.onDestroy();
         //Constants.LOG_ENABLED = false;
@@ -326,5 +354,35 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
         PendingIntent pendingIntent = PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         return pendingIntent;
+    }
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (Constants.REQUEST_ENABLE_BT == requestCode) {
+
+        }
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    public class MainActivityBroadcastReceiver extends BroadcastReceiver {
+        protected static final String TAG = "beacon-detection-response-receiver";
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals(Constants.INTENT_FILTER_BLE)) {
+                if (intent.hasExtra(Constants.BLUETOOTH_NOT_FOUND)
+                        && intent.getBooleanExtra(Constants.BLUETOOTH_NOT_FOUND, false)) {
+                    Toast.makeText(getApplicationContext(), "Bluetooth not found.", Toast.LENGTH_LONG).show();
+                }
+
+                if (intent.hasExtra(Constants.BLUETOOTH_DISABLED)
+                        && intent.getBooleanExtra(Constants.BLUETOOTH_DISABLED, false)) {
+                    Intent enableBtIntent = new Intent(
+                            BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                    startActivityForResult(enableBtIntent, Constants.REQUEST_ENABLE_BT);
+                }
+            }
+        }
     }
 }

@@ -1,6 +1,7 @@
 package kr.ac.kaist.nmsl.pushmanager.defer;
 
 import android.app.Service;
+import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -13,6 +14,8 @@ import android.widget.Toast;
 
 import com.google.android.gms.location.ActivityRecognitionResult;
 import com.google.android.gms.location.DetectedActivity;
+
+import org.altbeacon.beacon.Beacon;
 
 import java.util.*;
 
@@ -63,6 +66,7 @@ public class DeferService extends Service {
         IntentFilter filter = new IntentFilter();
         filter.addAction(INTENT_FILTER_ACTIVITY);
         filter.addAction(INTENT_FILTER_NOTIFICATION);
+        filter.addAction(Constants.INTENT_FILTER_BLE);
         registerReceiver(mDeferServiceReceiver, filter);
 
         Log.i(Constants.DEBUG_TAG, "DeferService started.");
@@ -144,6 +148,18 @@ public class DeferService extends Service {
                 String name = getActivityName(intent.getIntExtra("activity_type", -1));
                 Log.d(Constants.DEBUG_TAG, "[Detected Activity] " + name + ": " + prob);
                 Toast.makeText(context, "[Detected Activity] " + name + ": " + prob, Toast.LENGTH_SHORT).show();
+            }
+
+            if (intent.getAction().equals(Constants.INTENT_FILTER_BLE)) {
+                if (intent.hasExtra(Constants.BLUETOOTH_LE_BEACON)) {
+                    ArrayList<Beacon> detectedBeacons =
+                            intent.getParcelableArrayListExtra(Constants.BLUETOOTH_LE_BEACON);
+
+                    Log.d(Constants.DEBUG_TAG, "=================== detected beacons ==================");
+                    for (Beacon detectedBeacon: detectedBeacons) {
+                        Log.d(Constants.DEBUG_TAG, detectedBeacon.getBluetoothAddress() + ", " + detectedBeacon.getDataFields().size() + ", " + detectedBeacon.getExtraDataFields().size() + ", " + String.valueOf(detectedBeacon.getRssi()));
+                    }
+                }
             }
         }
     }
