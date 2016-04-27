@@ -1,7 +1,6 @@
 package kr.ac.kaist.nmsl.pushmanager.defer;
 
 import android.app.Service;
-import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -12,7 +11,6 @@ import android.os.Vibrator;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.google.android.gms.location.ActivityRecognitionResult;
 import com.google.android.gms.location.DetectedActivity;
 
 import org.altbeacon.beacon.Beacon;
@@ -20,6 +18,8 @@ import org.altbeacon.beacon.Beacon;
 import java.util.*;
 
 import kr.ac.kaist.nmsl.pushmanager.Constants;
+import kr.ac.kaist.nmsl.pushmanager.ble.BLEStatus;
+import kr.ac.kaist.nmsl.pushmanager.util.BLEUtil;
 
 public class DeferService extends Service {
     private static final int VIBRATION_DURATION = 500;
@@ -160,15 +160,22 @@ public class DeferService extends Service {
                     for (Beacon detectedBeacon : detectedBeacons) {
                         Log.d(Constants.DEBUG_TAG, detectedBeacon.getBluetoothAddress() + ", " + detectedBeacon.getDataFields().size() + ", " + detectedBeacon.getExtraDataFields().size() + ", " + String.valueOf(detectedBeacon.getRssi()));
 
-                        if (detectedBeacon.getDataFields().size() > 0){
-                            Log.d(Constants.DEBUG_TAG, "DataField at 0: " + detectedBeacon.getDataFields().get(0));
-                        }
-                        if (detectedBeacon.getExtraDataFields().size() > 0) {
-                            Log.d(Constants.DEBUG_TAG, "ExtraDataField at 0: " + detectedBeacon.getExtraDataFields().get(0));
+                        if (detectedBeacon.getDataFields().size() > 0) {
+
+                            long blePhoneNumber = BLEUtil.getBLEPhoneNumber(detectedBeacon);
+                            BLEStatus bleStatus = getBLEStatus(detectedBeacon);
+
+                            // TODO: Use BLE Phone number and status
+                            Log.d(Constants.DEBUG_TAG, "BLEPhoneNumber: " + blePhoneNumber + "  /  BLEStatus: " + bleStatus.name());
+
                         }
                     }
                 }
             }
+        }
+
+        private BLEStatus getBLEStatus(Beacon detectedBeacon) {
+            return BLEStatus.parse(detectedBeacon.getDataFields().get(2));
         }
     }
 }

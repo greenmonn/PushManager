@@ -64,20 +64,21 @@ public class BLEService extends Service implements BeaconConsumer {
 
     private Beacon createAdvertisingBeacon() {
         String uuid = UUIDUtil.toUUID(BLEUtil.getMacAddress()).toString();
-        List<Long> testData = new ArrayList<Long>();
-        testData.add(418L);
-        testData.add(13L);
-        testData.add(42L);
+        List<Long> dataFields = new ArrayList<Long>();
+        long[] myNumber = BLEUtil.getMyPhoneNumber(this);
+        dataFields.add(myNumber[0]);
+        dataFields.add(myNumber[1]);
+        dataFields.add(BLEStatus.Unknown.getCode()); // to be updated elsewhere
+        dataFields.add(0L);// to be updated elsewhere
 
         return new Beacon.Builder()
                 .setId1(uuid)
-                //.setId2(Constants.BeaconConst.UUID_2)
-                //.setId3(Constants.BeaconConst.UUID_3)
                 .setManufacturer(Constants.BeaconConst.MANUFACTURER)
                 .setTxPower(Constants.BeaconConst.TX_POWER)
-                .setDataFields(testData)
+                .setDataFields(dataFields)
                 .setExtraDataFields(Constants.BeaconConst.EXTRA_DATA_FIELDS).build();
     }
+
 
     public void startBLE() {
         if (initializeBluetooth() && !isInitialized()) {
@@ -122,13 +123,6 @@ public class BLEService extends Service implements BeaconConsumer {
 
         if (isEnabled) {
             this.advertisingBeacon = createAdvertisingBeacon();
-            long now = System.currentTimeMillis();
-            Log.d(TAG, "I put time as a sample " + now);
-            List<Long> samplePayload = new ArrayList<Long>();
-            samplePayload.add(now);
-            samplePayload.add(12345L);
-            samplePayload.add(67890L);
-            this.advertisingBeacon.setExtraDataFields(samplePayload);
 
             beaconTransmitter.startAdvertising(this.advertisingBeacon);
         } else {
