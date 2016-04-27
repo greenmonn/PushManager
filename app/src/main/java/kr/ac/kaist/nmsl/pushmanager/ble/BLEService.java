@@ -24,6 +24,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import kr.ac.kaist.nmsl.pushmanager.Constants;
+import kr.ac.kaist.nmsl.pushmanager.activity.PhoneState;
 import kr.ac.kaist.nmsl.pushmanager.util.BLEUtil;
 import kr.ac.kaist.nmsl.pushmanager.util.UUIDUtil;
 
@@ -39,7 +40,6 @@ public class BLEService extends Service implements BeaconConsumer {
     private BluetoothAdapter btAdapter = null;
     private BeaconManager beaconManager = null;
     private BeaconTransmitter beaconTransmitter = null;
-    private Beacon advertisingBeacon = null;
 
     public BLEService() {
         LogManager.setVerboseLoggingEnabled(true);
@@ -48,6 +48,23 @@ public class BLEService extends Service implements BeaconConsumer {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         startBLE();
+
+        // Add this to phone state
+        PhoneState.getInstance().addListener(new PhoneState.PhoneStateListener() {
+            public void onMyPhoneStateChanged(PhoneState.State oldState, PhoneState.State newState) {
+                Log.d(Constants.TAG, "Updating beacon state from " + oldState.getCode() + " to " + newState.getCode());
+                if (beaconTransmitter != null) {
+                    Log.d(Constants.TAG, "Restarting BeaconTransmitter with new state: " + newState.getCode());
+                    if (beaconTransmitter.isStarted()) {
+                        beaconTransmitter.stopAdvertising();
+                    }
+
+                    // Restart
+                    beaconTransmitter.startAdvertising(createAdvertisingBeacon());
+                }
+            }
+        });
+
         return START_STICKY;
     }
 
@@ -68,8 +85,8 @@ public class BLEService extends Service implements BeaconConsumer {
         long[] myNumber = BLEUtil.getMyPhoneNumber(this);
         dataFields.add(myNumber[0]);
         dataFields.add(myNumber[1]);
-        dataFields.add(BLEStatus.Unknown.getCode()); // to be updated elsewhere
-        dataFields.add(0L);// to be updated elsewhere
+        dataFields.add(PhoneState.getInstance().getMyState().getCode());
+        dataFields.add(0L);// to be updated
 
         return new Beacon.Builder()
                 .setId1(uuid)
@@ -122,9 +139,7 @@ public class BLEService extends Service implements BeaconConsumer {
         }
 
         if (isEnabled) {
-            this.advertisingBeacon = createAdvertisingBeacon();
-
-            beaconTransmitter.startAdvertising(this.advertisingBeacon);
+            beaconTransmitter.startAdvertising(createAdvertisingBeacon());
         } else {
             beaconTransmitter.stopAdvertising();
         }
@@ -204,4 +219,5 @@ public class BLEService extends Service implements BeaconConsumer {
         // TODO: Return the communication channel to the service.
         throw new UnsupportedOperationException("Not yet implemented");
     }
+
 }

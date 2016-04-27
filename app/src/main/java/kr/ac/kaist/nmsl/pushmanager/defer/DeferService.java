@@ -11,14 +11,12 @@ import android.os.Vibrator;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.google.android.gms.location.DetectedActivity;
-
 import org.altbeacon.beacon.Beacon;
 
 import java.util.*;
 
 import kr.ac.kaist.nmsl.pushmanager.Constants;
-import kr.ac.kaist.nmsl.pushmanager.ble.BLEStatus;
+import kr.ac.kaist.nmsl.pushmanager.activity.PhoneState;
 import kr.ac.kaist.nmsl.pushmanager.util.BLEUtil;
 
 public class DeferService extends Service {
@@ -86,44 +84,8 @@ public class DeferService extends Service {
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
-    private String getActivityName(int activityType) {
-        String activityName = "unknown";
-        switch (activityType) {
-            case DetectedActivity.IN_VEHICLE: {
-                activityName = "vehicle";
-                break;
-            }
-            case DetectedActivity.ON_BICYCLE: {
-                activityName = "bicycle";
-                break;
-            }
-            case DetectedActivity.ON_FOOT: {
-                activityName = "foot";
-                break;
-            }
-            case DetectedActivity.RUNNING: {
-                activityName = "running";
-                break;
-            }
-            case DetectedActivity.STILL: {
-                activityName = "still";
-                break;
-            }
-            case DetectedActivity.TILTING: {
-                activityName = "tilting";
-                break;
-            }
-            case DetectedActivity.WALKING: {
-                activityName = "walking";
-                break;
-            }
-            case DetectedActivity.UNKNOWN: {
-                activityName = "unknown";
-                break;
-            }
-        }
-
-        return activityName;
+    private PhoneState.State getActivityName(int activityType) {
+        return PhoneState.getStateByDetectedActivity(activityType);
     }
 
     //TODO: management policy to be added!!
@@ -146,9 +108,10 @@ public class DeferService extends Service {
 
             if (intent.getAction().equals(Constants.INTENT_FILTER_ACTIVITY)) {
                 int prob = intent.getIntExtra("activity_probability", 0);
-                String name = getActivityName(intent.getIntExtra("activity_type", -1));
-                Log.d(Constants.DEBUG_TAG, "[Detected Activity] " + name + ": " + prob);
-                Toast.makeText(context, "[Detected Activity] " + name + ": " + prob, Toast.LENGTH_SHORT).show();
+                PhoneState.State state = getActivityName(intent.getIntExtra("activity_type", -1));
+                PhoneState.getInstance().updateMyState(state);
+                Log.d(Constants.DEBUG_TAG, "[Detected Activity] " + state.name() + ": " + prob);
+                Toast.makeText(context, "[Detected Activity] " + state.name() + ": " + prob, Toast.LENGTH_SHORT).show();
             }
 
             if (intent.getAction().equals(Constants.INTENT_FILTER_BLE)) {
@@ -163,19 +126,16 @@ public class DeferService extends Service {
                         if (detectedBeacon.getDataFields().size() > 0) {
 
                             long blePhoneNumber = BLEUtil.getBLEPhoneNumber(detectedBeacon);
-                            BLEStatus bleStatus = getBLEStatus(detectedBeacon);
+                            PhoneState.State bleState = PhoneState.getStateFromBeacon(detectedBeacon);
 
                             // TODO: Use BLE Phone number and status
-                            Log.d(Constants.DEBUG_TAG, "BLEPhoneNumber: " + blePhoneNumber + "  /  BLEStatus: " + bleStatus.name());
+                            Log.d(Constants.DEBUG_TAG, "BLEPhoneNumber: " + blePhoneNumber + "  /  BLEState: " + bleState.name());
 
+                            Toast.makeText(context, "[BLE] " + blePhoneNumber + " / His state: "+bleState.name(), Toast.LENGTH_SHORT).show();
                         }
                     }
                 }
             }
-        }
-
-        private BLEStatus getBLEStatus(Beacon detectedBeacon) {
-            return BLEStatus.parse(detectedBeacon.getDataFields().get(2));
         }
     }
 }
