@@ -43,9 +43,12 @@ public class Constants {
 
     public static final int REQUEST_ENABLE_BT = 1842;
 
+    public static final String INTENT_FILTER_NOTIFICATION = "kr.ac.kaist.nmsl.pushmanager.notification";
+    public static final String INTENT_FILTER_ACTIVITY = "kr.ac.kaist.nmsl.pushmanager.action.activity";
     public static final String INTENT_FILTER_BLE = "kr.ac.kaist.nmsl.pushmanager.action.ble";
 
     public static final String BLUETOOTH_NOT_FOUND = "bt_not_found";
     public static final String BLUETOOTH_DISABLED = "bt_disabled";
     public static final String BLUETOOTH_LE_BEACON = "ble_beacon";
+
 }

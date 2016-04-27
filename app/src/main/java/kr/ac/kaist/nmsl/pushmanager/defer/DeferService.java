@@ -22,9 +22,6 @@ import java.util.*;
 import kr.ac.kaist.nmsl.pushmanager.Constants;
 
 public class DeferService extends Service {
-    private static final String INTENT_FILTER_NOTIFICATION = "kr.ac.kaist.nmsl.pushmanager.notification";
-    private static final String INTENT_FILTER_ACTIVITY = "kr.ac.kaist.nmsl.pushmanager.action.activity";
-
     private static final int VIBRATION_DURATION = 500;
 
     private AudioManager mAudioManager;
@@ -64,8 +61,8 @@ public class DeferService extends Service {
         }, duration, duration);
 
         IntentFilter filter = new IntentFilter();
-        filter.addAction(INTENT_FILTER_ACTIVITY);
-        filter.addAction(INTENT_FILTER_NOTIFICATION);
+        filter.addAction(Constants.INTENT_FILTER_ACTIVITY);
+        filter.addAction(Constants.INTENT_FILTER_NOTIFICATION);
         filter.addAction(Constants.INTENT_FILTER_BLE);
         registerReceiver(mDeferServiceReceiver, filter);
 
@@ -133,7 +130,7 @@ public class DeferService extends Service {
     class DeferServiceReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (intent.getAction().equals(INTENT_FILTER_NOTIFICATION)){
+            if (intent.getAction().equals(Constants.INTENT_FILTER_NOTIFICATION)){
                 if (intent.getStringExtra("notification_action").equals("posted")) {
                     Log.i(Constants.DEBUG_TAG, "Notification incremented");
                     mNotificationCount++;
@@ -143,7 +140,7 @@ public class DeferService extends Service {
                 }
             }
 
-            if (intent.getAction().equals(INTENT_FILTER_ACTIVITY)) {
+            if (intent.getAction().equals(Constants.INTENT_FILTER_ACTIVITY)) {
                 int prob = intent.getIntExtra("activity_probability", 0);
                 String name = getActivityName(intent.getIntExtra("activity_type", -1));
                 Log.d(Constants.DEBUG_TAG, "[Detected Activity] " + name + ": " + prob);

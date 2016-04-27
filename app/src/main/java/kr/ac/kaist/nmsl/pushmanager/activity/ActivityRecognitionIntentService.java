@@ -2,12 +2,15 @@ package kr.ac.kaist.nmsl.pushmanager.activity;
 
 import android.app.IntentService;
 import android.content.Intent;
+import android.provider.SyncStateContract;
 import android.util.Log;
 
 import com.google.android.gms.location.ActivityRecognitionResult;
 import com.google.android.gms.location.DetectedActivity;
 
 import java.util.List;
+
+import kr.ac.kaist.nmsl.pushmanager.Constants;
 
 
 /**
@@ -17,8 +20,6 @@ import java.util.List;
  * TODO: Customize class - update intent actions and extra parameters.
  */
 public class ActivityRecognitionIntentService extends IntentService {
-    private static final String INTENT_FILTER = "kr.ac.kaist.nmsl.pushmanager.action.activity";
-
     public ActivityRecognitionIntentService() {
         super("ActivityRecognitionIntentService");
     }
@@ -28,7 +29,7 @@ public class ActivityRecognitionIntentService extends IntentService {
         ActivityRecognitionResult result = ActivityRecognitionResult.extractResult(intent);
         handleDetectedActivities( result.getProbableActivities() );
 
-        Intent i = new  Intent(INTENT_FILTER);
+        Intent i = new  Intent(Constants.INTENT_FILTER_ACTIVITY);
         i.putExtra("activity_probability", result.getMostProbableActivity().getConfidence());
         i.putExtra("activity_type", result.getMostProbableActivity().getType());
 
