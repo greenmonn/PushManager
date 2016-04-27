@@ -5,9 +5,13 @@ import android.app.PendingIntent;
 import android.app.admin.DevicePolicyManager;
 import android.content.Context;
 import android.content.Intent;
+import android.media.AudioFormat;
+import android.media.AudioRecord;
+import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Environment;
+import android.provider.MediaStore;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -21,6 +25,7 @@ import android.widget.Toast;
 
 import java.io.File;
 
+import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Timer;
@@ -31,7 +36,9 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.ActivityRecognition;
 
+import be.tarsos.dsp.AudioProcessor;
 import kr.ac.kaist.nmsl.pushmanager.activity.ActivityRecognitionIntentService;
+import kr.ac.kaist.nmsl.pushmanager.audio.AudioProcessorService;
 import kr.ac.kaist.nmsl.pushmanager.defer.DeferService;
 import kr.ac.kaist.nmsl.pushmanager.notification.NotificationService;
 import kr.ac.kaist.nmsl.pushmanager.util.ServiceUtil;
@@ -91,6 +98,7 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
         }
 
         context.startService(new Intent(context, NotificationService.class));
+        context.startService(new Intent(context, AudioProcessorService.class));
 
         //Google API Client
         mGoogleApiClient = new GoogleApiClient.Builder(this)
@@ -191,6 +199,46 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 
         final RadioGroup groupMode = (RadioGroup) findViewById(R.id.group_mode);
         groupMode.check(R.id.radio_btn_no_intervention);
+/*
+        AudioDispatcher dispatcher = AudioDispatcherFactory.fromDefaultMicrophone(22050,1024,0);
+
+
+        dispatcher.addAudioProcessor(new PitchProcessor(PitchProcessor.PitchEstimationAlgorithm.FFT_YIN, 22050, 1024, new PitchDetectionHandler() {
+
+            @Override
+            public void handlePitch(PitchDetectionResult pitchDetectionResult,
+                                    AudioEvent audioEvent) {
+                final float pitchInHz = pitchDetectionResult.getPitch();
+                Log.d(Constants.DEBUG_TAG, "pitch: " + pitchInHz);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        //TextView text = (TextView) findViewById(R.id.textView1);
+                        //text.setText("" + pitchInHz);
+
+                        Toast.makeText(context, "pitch: " + pitchInHz, Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+            }
+        }));
+        new Thread(dispatcher,"Audio Dispatcher").start();
+*/
+        /*static final int SAMPLE_RATE = 8000;
+        int bufferSize = AudioRecord.getMinBufferSize(SAMPLE_RATE, AudioFormat.CHANNEL_IN_MONO,
+                AudioFormat.ENCODING_PCM_16BIT);
+        byte[] buffer = new byte[bufferSize];
+        AudioRecord recorder = new AudioRecord(MediaRecorder.AudioSource.MIC, SAMPLE_RATE, AudioFormat.CHANNEL_IN_MONO,
+                AudioFormat.ENCODING_PCM_16BIT, bufferSize);
+
+
+        AudioProcessor p = new PitchProcessor(PitchProcessor.PitchEstimationAlgorithm.AMDF, SAMPLE_RATE, bufferSize, pdh);
+        TarsosDSPAudioFormat mTarsosFormat = new TarsosDSPAudioFormat(SAMPLE_RATE, 16, 1, true, false);
+
+        int bufferReadResult = recorder.read(buffer, 0, bufferSize);
+        AudioEvent audioEvent = new AudioEvent(mTarsosFormat, bufferReadResult);
+        audioEvent.setFloatBuffer(buffer);
+        p.process(audioEvent);*/
     }
 
     /*private void startWarningService(){
