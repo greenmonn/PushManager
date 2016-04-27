@@ -222,7 +222,6 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
         if (Constants.LOG_ENABLED) {
             Util.writeLogToFile(context, Constants.LOG_NAME, "==============NoIntervention started===============");
         }
-        ActivityRecognition.ActivityRecognitionApi.requestActivityUpdates(mGoogleApiClient, Constants.ACTIVITY_REQUEST_DURATION, getActivityDetectionPendingIntent());
     }
 
     private void stopAllServices(){
