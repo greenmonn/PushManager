@@ -40,12 +40,12 @@ public class DeferService extends Service {
 
         mDeferServiceReceiver = new DeferServiceReceiver();
 
-        mAudioManager = (AudioManager)getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
+        mAudioManager = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
         mAudioManager.setRingerMode(AudioManager.RINGER_MODE_SILENT);
 
-        mVibrator = (Vibrator)getApplicationContext().getSystemService(Context.VIBRATOR_SERVICE);
+        mVibrator = (Vibrator) getApplicationContext().getSystemService(Context.VIBRATOR_SERVICE);
 
-        long duration = (intent.getLongExtra("duration", 60*1000L) * 10 / 25);
+        long duration = (intent.getLongExtra("duration", 60 * 1000L) * 10 / 25);
         Log.d(Constants.DEBUG_TAG, "Defer duration: " + duration);
 
         mTimer = new Timer();
@@ -88,7 +88,7 @@ public class DeferService extends Service {
 
     private String getActivityName(int activityType) {
         String activityName = "unknown";
-        switch(activityType) {
+        switch (activityType) {
             case DetectedActivity.IN_VEHICLE: {
                 activityName = "vehicle";
                 break;
@@ -128,9 +128,13 @@ public class DeferService extends Service {
 
     //TODO: management policy to be added!!
     class DeferServiceReceiver extends BroadcastReceiver {
+        public DeferServiceReceiver() {
+            Log.d(Constants.TAG, "Starting DeferServiceReceiver broadcast receiver");
+        }
+
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (intent.getAction().equals(Constants.INTENT_FILTER_NOTIFICATION)){
+            if (intent.getAction().equals(Constants.INTENT_FILTER_NOTIFICATION)) {
                 if (intent.getStringExtra("notification_action").equals("posted")) {
                     Log.i(Constants.DEBUG_TAG, "Notification incremented");
                     mNotificationCount++;
@@ -153,8 +157,15 @@ public class DeferService extends Service {
                             intent.getParcelableArrayListExtra(Constants.BLUETOOTH_LE_BEACON);
 
                     Log.d(Constants.DEBUG_TAG, "=================== detected beacons ==================");
-                    for (Beacon detectedBeacon: detectedBeacons) {
+                    for (Beacon detectedBeacon : detectedBeacons) {
                         Log.d(Constants.DEBUG_TAG, detectedBeacon.getBluetoothAddress() + ", " + detectedBeacon.getDataFields().size() + ", " + detectedBeacon.getExtraDataFields().size() + ", " + String.valueOf(detectedBeacon.getRssi()));
+
+                        if (detectedBeacon.getDataFields().size() > 0){
+                            Log.d(Constants.DEBUG_TAG, "DataField at 0: " + detectedBeacon.getDataFields().get(0));
+                        }
+                        if (detectedBeacon.getExtraDataFields().size() > 0) {
+                            Log.d(Constants.DEBUG_TAG, "ExtraDataField at 0: " + detectedBeacon.getExtraDataFields().get(0));
+                        }
                     }
                 }
             }

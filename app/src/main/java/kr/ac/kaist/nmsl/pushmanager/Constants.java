@@ -30,12 +30,15 @@ public class Constants {
         public static final String UUID_2 = "1";
         public static final String UUID_3 = "2";
         //public static final String LAYOUT_STRING = "m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25";
-        public static final String LAYOUT_STRING = "m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24";
+        //public static final String LAYOUT_STRING = "m:2-3=0118,i:4-7,p:8-8,d:9-16,d:18-25";
+        public static final String LAYOUT_STRING = "m:2-3=0118,i:4-7,p:8-8,d:9-12,d:13-16";
+        //public static final String LAYOUT_STRING = "x,s:0-1=feaa,m:2-2=20,d:3-3,d:4-5,d:6-7,d:8-11,d:12-15";
+        //public static final String LAYOUT_STRING = "x,s:0-1=feaa,m:2-2=20,d:3-3,d:4-5,d:6-7,d:8-11,d:12-15,i:16-31";
 
         public static final int MANUFACTURER = 0x0118;
         public static final int TX_POWER = -59;
         public static final List<Long> DATA_FIELDS = Arrays
-                .asList(new Long[] { 0L });
+                .asList(new Long[] { 0L});
         public static final List<Long> EXTRA_DATA_FIELDS = Arrays
                 .asList(new Long[] { 0L });
         public static final String UNIQUE_REGION_ID = "myRangingUniqueId";

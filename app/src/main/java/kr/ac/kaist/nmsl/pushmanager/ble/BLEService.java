@@ -15,18 +15,19 @@ import org.altbeacon.beacon.BeaconParser;
 import org.altbeacon.beacon.BeaconTransmitter;
 import org.altbeacon.beacon.RangeNotifier;
 import org.altbeacon.beacon.Region;
+import org.altbeacon.beacon.logging.LogManager;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 
 import kr.ac.kaist.nmsl.pushmanager.Constants;
 import kr.ac.kaist.nmsl.pushmanager.util.BLEUtil;
 import kr.ac.kaist.nmsl.pushmanager.util.UUIDUtil;
 
 public class BLEService extends Service implements BeaconConsumer {
-    private static final String INTENT_FILTER = "kr.ac.kaist.nmsl.pushmanager.action.ble";
     public static final String BLUETOOTH_NOT_FOUND = "bt_not_found";
     public static final String BLUETOOTH_DISABLED = "bt_disabled";
     public static final String BLUETOOTH_LE_BEACON = "ble_beacon";
@@ -38,8 +39,10 @@ public class BLEService extends Service implements BeaconConsumer {
     private BluetoothAdapter btAdapter = null;
     private BeaconManager beaconManager = null;
     private BeaconTransmitter beaconTransmitter = null;
+    private Beacon advertisingBeacon = null;
 
     public BLEService() {
+        LogManager.setVerboseLoggingEnabled(true);
     }
 
     @Override
@@ -61,13 +64,18 @@ public class BLEService extends Service implements BeaconConsumer {
 
     private Beacon createAdvertisingBeacon() {
         String uuid = UUIDUtil.toUUID(BLEUtil.getMacAddress()).toString();
+        List<Long> testData = new ArrayList<Long>();
+        testData.add(418L);
+        testData.add(13L);
+        testData.add(42L);
 
-        return new Beacon.Builder().setId1(uuid)
-                .setId2(Constants.BeaconConst.UUID_2)
-                .setId3(Constants.BeaconConst.UUID_3)
+        return new Beacon.Builder()
+                .setId1(uuid)
+                //.setId2(Constants.BeaconConst.UUID_2)
+                //.setId3(Constants.BeaconConst.UUID_3)
                 .setManufacturer(Constants.BeaconConst.MANUFACTURER)
                 .setTxPower(Constants.BeaconConst.TX_POWER)
-                .setDataFields(Constants.BeaconConst.DATA_FIELDS)
+                .setDataFields(testData)
                 .setExtraDataFields(Constants.BeaconConst.EXTRA_DATA_FIELDS).build();
     }
 
@@ -100,7 +108,7 @@ public class BLEService extends Service implements BeaconConsumer {
         beaconManager.getBeaconParsers().add(beaconParser);
 
         if (BLEUtil.isAdvertisingSupportedDevice(this)) {
-            Log.d(TAG, "Initializing BeaconParser - Android Lollipop detected!");
+            Log.d(TAG, "Initializing BeaconParser - Android Lollipop (or higher version) detected!");
 
             beaconTransmitter = new BeaconTransmitter(getApplicationContext(),
                     beaconParser);
@@ -113,7 +121,16 @@ public class BLEService extends Service implements BeaconConsumer {
         }
 
         if (isEnabled) {
-            beaconTransmitter.startAdvertising(createAdvertisingBeacon());
+            this.advertisingBeacon = createAdvertisingBeacon();
+            long now = System.currentTimeMillis();
+            Log.d(TAG, "I put time as a sample " + now);
+            List<Long> samplePayload = new ArrayList<Long>();
+            samplePayload.add(now);
+            samplePayload.add(12345L);
+            samplePayload.add(67890L);
+            this.advertisingBeacon.setExtraDataFields(samplePayload);
+
+            beaconTransmitter.startAdvertising(this.advertisingBeacon);
         } else {
             beaconTransmitter.stopAdvertising();
         }
@@ -122,14 +139,14 @@ public class BLEService extends Service implements BeaconConsumer {
     private boolean initializeBluetooth() {
         btAdapter = BLEUtil.getBluetoothAdapter();
         if (btAdapter == null) {
-            Intent localIntent = new Intent(INTENT_FILTER);
+            Intent localIntent = new Intent(Constants.INTENT_FILTER_BLE);
             localIntent.putExtra(BLUETOOTH_NOT_FOUND, true);
             LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(localIntent);
             return false;
         }
 
         if (!btAdapter.isEnabled()) {
-            Intent localIntent = new Intent(INTENT_FILTER);
+            Intent localIntent = new Intent(Constants.INTENT_FILTER_BLE);
             localIntent.putExtra(BLUETOOTH_DISABLED, true);
             LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(localIntent);
             return false;
@@ -156,19 +173,26 @@ public class BLEService extends Service implements BeaconConsumer {
             @Override
             public void didRangeBeaconsInRegion(Collection<Beacon> beacons,
                                                 Region region) {
-                Intent localIntent = new Intent(INTENT_FILTER);
+                Log.d(TAG, "onBeaconServiceConnect called with " + beacons.size() + " many beacons");
+
+                if (beacons.size() <= 0) {
+                    return;
+                }
+
+                Intent localIntent = new Intent(Constants.INTENT_FILTER_BLE);
 
                 ArrayList<Beacon> beaconList = new ArrayList<>(beacons);
 
                 Collections.sort(beaconList, new Comparator<Beacon>() {
                     @Override
                     public int compare(Beacon lhs, Beacon rhs) {
-                        return -1*Integer.compare(lhs.getRssi(), rhs.getRssi());
+                        return -1 * Integer.compare(lhs.getRssi(), rhs.getRssi());
                     }
                 });
 
                 localIntent.putExtra(BLUETOOTH_LE_BEACON, beaconList);
                 sendBroadcast(localIntent);
+
             }
         });
 
