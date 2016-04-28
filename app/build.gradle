@@ -27,4 +27,5 @@ dependencies {
     compile 'com.android.support:support-v4:+'
     compile 'com.google.android.gms:play-services-location:8.4.0'
     compile 'org.altbeacon:android-beacon-library:2+'
+    compile fileTree(dir: 'libs', include: ['*.jar'])
 }
