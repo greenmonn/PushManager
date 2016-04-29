@@ -129,9 +129,11 @@ public class DeferService extends Service {
                             PhoneState.State bleState = PhoneState.getStateFromBeacon(detectedBeacon);
 
                             // TODO: Use BLE Phone number and status
-                            Log.d(Constants.DEBUG_TAG, "BLEPhoneNumber: " + blePhoneNumber + "  /  BLEState: " + bleState.name());
+                            if (!bleState.name().equals("STILL")) {
+                                Log.d(Constants.DEBUG_TAG, "BLEPhoneNumber: " + blePhoneNumber + "  /  BLEState: " + bleState.name());
+                            }
 
-                            Toast.makeText(context, "[BLE] " + blePhoneNumber + " / His state: "+bleState.name(), Toast.LENGTH_SHORT).show();
+                            //Toast.makeText(context, "[BLE] " + blePhoneNumber + " / His state: "+bleState.name(), Toast.LENGTH_SHORT).show();
                         }
                     }
                 }

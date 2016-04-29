@@ -22,6 +22,7 @@ import be.tarsos.dsp.pitch.PitchProcessor;
 import kr.ac.kaist.nmsl.pushmanager.Constants;
 
 public class AudioProcessorService extends Service {
+    private AudioDispatcher dispatcher;
 
     public AudioProcessorService() {
     }
@@ -29,11 +30,14 @@ public class AudioProcessorService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
-        final AudioDispatcher dispatcher = AudioDispatcherFactory.fromDefaultMicrophone(22050,1024,0);
+        dispatcher = AudioDispatcherFactory.fromDefaultMicrophone(22050,1024,0);
         dispatcher.addAudioProcessor(new PauseAudioProcessor(0.1, 1, new PauseAudioProcessor.SilenceHandler() {
             @Override
             public void handleSilence(boolean isSilence, double currentSPL, AudioEvent audioEvent) {
-                Log.d(Constants.DEBUG_TAG, isSilence + ", " + currentSPL + ", " + audioEvent.getTimeStamp());
+                if (!isSilence) {
+                    Log.d(Constants.DEBUG_TAG, isSilence + ", " + currentSPL + ", " + audioEvent.getTimeStamp());
+                    Toast.makeText(getApplicationContext(), isSilence + ", " + currentSPL, Toast.LENGTH_SHORT).show();
+                }
             }
         }));
 
@@ -42,6 +46,12 @@ public class AudioProcessorService extends Service {
         Log.d(Constants.DEBUG_TAG, "dispatcher started");
 
         return START_STICKY;
+    }
+
+    @Override
+    public void onDestroy() {
+        dispatcher.stop();
+        super.onDestroy();
     }
 
     @Override

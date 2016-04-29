@@ -23,7 +23,7 @@ private SilenceHandler handler;
         this.period = period;
         this.handler = handler;
 
-        mSilenceDetector = new SilenceDetector(-90.0, false);
+        mSilenceDetector = new SilenceDetector(-70.0, false);
     }
 
     @Override
