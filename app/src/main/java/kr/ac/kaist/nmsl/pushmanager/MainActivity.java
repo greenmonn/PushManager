@@ -37,6 +37,7 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.ActivityRecognition;
 
 import kr.ac.kaist.nmsl.pushmanager.activity.ActivityRecognitionIntentService;
+import kr.ac.kaist.nmsl.pushmanager.activity.StepCounterService;
 import kr.ac.kaist.nmsl.pushmanager.ble.BLEService;
 import kr.ac.kaist.nmsl.pushmanager.audio.AudioProcessorService;
 import kr.ac.kaist.nmsl.pushmanager.defer.DeferService;
@@ -267,6 +268,7 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 
         context.startService(new Intent(context, AudioProcessorService.class));
         context.startService(new Intent(context, BLEService.class));
+        context.startService(new Intent(context, StepCounterService.class));
     }
 
     private void startNoInterventionService() {
@@ -298,6 +300,7 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 
         context.stopService(new Intent(context, AudioProcessorService.class));
         context.stopService(new Intent(context, BLEService.class));
+        context.stopService(new Intent(context, StepCounterService.class));
     }
 
     private void startCountDownTimer() {
