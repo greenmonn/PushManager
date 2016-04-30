@@ -7,7 +7,6 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.IBinder;
-import android.support.annotation.Nullable;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -42,7 +41,12 @@ public class StepCounterService extends Service implements SensorEventListener {
     @Override
     public void onSensorChanged(SensorEvent event) {
         Log.d(Constants.DEBUG_TAG, "detected step: " + event.values[0]);
-        Toast.makeText(getApplicationContext(), event.values[0] + " steps.", Toast.LENGTH_SHORT).show();
+        //Toast.makeText(getApplicationContext(), event.values[0] + " steps.", Toast.LENGTH_SHORT).show();
+        Intent i = new  Intent(Constants.INTENT_FILTER_ACTIVITY);
+        i.putExtra("activity_probability", 100);
+        i.putExtra("activity_type", "STEP");
+
+        sendBroadcast(i);
     }
 
     @Override

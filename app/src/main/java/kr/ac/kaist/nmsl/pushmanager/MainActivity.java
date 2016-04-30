@@ -103,7 +103,6 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
         }
 
         context.startService(new Intent(context, NotificationService.class));
-        context.startService(new Intent(context, StepCounterService.class));
 
         //Google API Client
         mGoogleApiClient = new GoogleApiClient.Builder(this)
@@ -269,6 +268,7 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 
         context.startService(new Intent(context, AudioProcessorService.class));
         context.startService(new Intent(context, BLEService.class));
+        context.startService(new Intent(context, StepCounterService.class));
     }
 
     private void startNoInterventionService() {
@@ -300,6 +300,7 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 
         context.stopService(new Intent(context, AudioProcessorService.class));
         context.stopService(new Intent(context, BLEService.class));
+        context.stopService(new Intent(context, StepCounterService.class));
     }
 
     private void startCountDownTimer() {
