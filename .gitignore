@@ -42,3 +42,8 @@ local.properties
 
 app/google-services.json
 *Credentials.java
+
+app/app.iml
+
+.idea/gradle.xml
+.idea/misc.xml
