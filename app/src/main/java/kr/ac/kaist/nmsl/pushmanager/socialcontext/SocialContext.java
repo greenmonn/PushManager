@@ -83,6 +83,25 @@ public class SocialContext {
             detectedActivitiesList.clear();
         }
 
+        int totalCount = prev.size();
+        int walkingCount = 0;
+        int stillCount = 0;
+
+        for (ArrayList<DetectedActivity> detectedActivities: prev) {
+            if (detectedActivities.get(0).getType() == DetectedActivity.WALKING ||
+                    detectedActivities.get(0).getType() == DetectedActivity.ON_FOOT) {
+                walkingCount++;
+            } else if (detectedActivities.get(0).getType() == DetectedActivity.STILL) {
+                stillCount++;
+            }
+        }
+
+        if (walkingCount >= stillCount) {
+            results.add(new Attribute(Constants.CONTEXT_ATTRIBUTE_TYPES.ACTIVITY, DetectedActivity.WALKING, new Date().getTime()));
+        } else {
+            results.add(new Attribute(Constants.CONTEXT_ATTRIBUTE_TYPES.ACTIVITY, DetectedActivity.STILL, new Date().getTime()));
+        }
+
         return results;
     }
 

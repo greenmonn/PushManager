@@ -121,6 +121,7 @@ public class DeferService extends Service {
 
                 if (intent.hasExtra("detected_activities")) {
                     ArrayList<DetectedActivity> detectedActivities = intent.getParcelableArrayListExtra("detected_activities");
+                    socialContext.addDetectedAcitivity(detectedActivities);
                 }
             }
 
