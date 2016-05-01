@@ -19,6 +19,8 @@ import java.util.*;
 
 import kr.ac.kaist.nmsl.pushmanager.Constants;
 import kr.ac.kaist.nmsl.pushmanager.activity.PhoneState;
+import kr.ac.kaist.nmsl.pushmanager.audio.AudioResult;
+import kr.ac.kaist.nmsl.pushmanager.socialcontext.SocialContext;
 import kr.ac.kaist.nmsl.pushmanager.util.BLEUtil;
 
 public class DeferService extends Service {
@@ -28,6 +30,7 @@ public class DeferService extends Service {
     private Vibrator mVibrator;
     private Timer mTimer;
     private int mNotificationCount;
+    private SocialContext socialContext;
 
     private DeferServiceReceiver mDeferServiceReceiver = null;
 
@@ -149,6 +152,15 @@ public class DeferService extends Service {
             if (intent.getAction().equals(Constants.INTENT_FILTER_USING_SMARTPHONE)) {
                 boolean isUsing = intent.getBooleanExtra("is_using", false);
                 PhoneState.getInstance().updateIsUsingSmartphone(isUsing);
+            }
+
+            if (intent.getAction().equals(Constants.INTENT_FILTER_AUDIO)) {
+                double spl = intent.getDoubleExtra("spl", 0.0);
+                double pitch = intent.getDoubleExtra("pitch", 0.0);
+
+                AudioResult audioResult = new AudioResult(spl, pitch);
+
+                socialContext.addAudioResult(audioResult);
             }
         }
     }

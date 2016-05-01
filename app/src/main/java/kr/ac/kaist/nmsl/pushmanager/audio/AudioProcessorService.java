@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.media.MediaRecorder;
 import android.os.IBinder;
 import android.util.Log;
-import android.widget.Toast;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -14,7 +13,6 @@ import be.tarsos.dsp.AudioDispatcher;
 import be.tarsos.dsp.AudioEvent;
 import be.tarsos.dsp.filters.HighPass;
 import be.tarsos.dsp.filters.LowPassFS;
-import be.tarsos.dsp.io.android.AudioDispatcherFactory;
 import be.tarsos.dsp.pitch.PitchDetectionHandler;
 import be.tarsos.dsp.pitch.PitchDetectionResult;
 import be.tarsos.dsp.pitch.PitchProcessor;
@@ -33,26 +31,23 @@ public class AudioProcessorService extends Service {
             @Override
             public void run() {
                 final AudioDispatcher dispatcher = SilenceAudioDispatcherFactory.fromMicrophone(MediaRecorder.AudioSource.MIC, 22050,1024,0);
-                dispatcher.addAudioProcessor(new HighPass(50, dispatcher.getFormat().getSampleRate()));
-                dispatcher.addAudioProcessor(new LowPassFS(300, dispatcher.getFormat().getSampleRate()));
-                dispatcher.addAudioProcessor(new SilenceAudioProcessor(Constants.AUDIO_SILENCE_SPL, Constants.AUDIO_SAMPLING_DURATION, new SilenceAudioProcessor.SilenceHandler() {
+                dispatcher.addAudioProcessor(new SilenceAudioProcessor(Constants.AUDIO_SILENCE_SPL, Constants.AUDIO_SAMPLING_DURATION, new SilenceAudioProcessor.ResultHandler() {
                     @Override
-                    public void handleSilence(boolean isSilence, double currentSPL, AudioEvent audioEvent) {
+                    public void handleResult(boolean isSilence, double currentSPL, double pitch, AudioEvent audioEvent) {
                         //if (!isSilence) {
                             Log.d(Constants.DEBUG_TAG, isSilence + ", " + currentSPL + ", " + audioEvent.getTimeStamp());
                         //}
+                        Intent i = new Intent(Constants.INTENT_FILTER_AUDIO);
+
+                        i.putExtra("spl", currentSPL);
+                        i.putExtra("pitch", pitch);
+
+                        sendBroadcast(i);
                     }
                 }, new SilenceAudioProcessor.TimeoutHandler() {
                     @Override
                     public void handleTimeout() {
                         dispatcher.stop();
-                    }
-                }));
-                dispatcher.addAudioProcessor(new PitchProcessor(PitchProcessor.PitchEstimationAlgorithm.FFT_YIN, 22050, 1024, new PitchDetectionHandler() {
-                    @Override
-                    public void handlePitch(PitchDetectionResult pitchDetectionResult, AudioEvent audioEvent) {
-                        final float pitchInHz = pitchDetectionResult.getPitch();
-                        Log.d(Constants.DEBUG_TAG, "detected pitch: " + pitchInHz);
                     }
                 }));
 

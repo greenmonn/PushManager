@@ -33,6 +33,9 @@ public class SocialContext {
     private final Object audioLock = new Object();
 
     public SocialContext () {
+        detectedActivitiesList = new ArrayList<>();
+        detectedBeaconsList = new ArrayList<>();
+        audioResults = new ArrayList<>();
     }
 
     public HashMap<Integer, Attribute> getCurrentContext () {
