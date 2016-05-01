@@ -9,6 +9,7 @@ import android.media.AudioManager;
 import android.os.IBinder;
 import android.os.Vibrator;
 import android.util.Log;
+import android.widget.Switch;
 import android.widget.Toast;
 
 import com.google.android.gms.location.DetectedActivity;
@@ -39,6 +40,8 @@ public class DeferService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        socialContext = new SocialContext();
+
         mNotificationCount = 0;
 
         mDeferServiceReceiver = new DeferServiceReceiver();
@@ -49,6 +52,7 @@ public class DeferService extends Service {
         mVibrator = (Vibrator) getApplicationContext().getSystemService(Context.VIBRATOR_SERVICE);
 
         long duration = (intent.getLongExtra("duration", 60 * 1000L) * 10 / 25);
+        long getContextDuration = 5000L;
         Log.d(Constants.DEBUG_TAG, "Defer duration: " + duration);
 
         mTimer = new Timer();
@@ -57,22 +61,56 @@ public class DeferService extends Service {
             public void run() {
                 if (mNotificationCount > 0) {
                     mNotificationCount = 0;
-                    mVibrator.vibrate(VIBRATION_DURATION);
+                    //mVibrator.vibrate(VIBRATION_DURATION);
                     Log.i(Constants.DEBUG_TAG, "Vibrated");
                 }
+
+                HashMap<Integer, SocialContext.Attribute> socialContextAttributes = socialContext.getCurrentContext();
+
+                for (Integer key: socialContextAttributes.keySet()) {
+                    logSocialContextAttribute(socialContextAttributes.get(key));
+                }
+
             }
-        }, duration, duration);
+        }, getContextDuration, getContextDuration);
 
         IntentFilter filter = new IntentFilter();
         filter.addAction(Constants.INTENT_FILTER_ACTIVITY);
         filter.addAction(Constants.INTENT_FILTER_NOTIFICATION);
         filter.addAction(Constants.INTENT_FILTER_BLE);
         filter.addAction(Constants.INTENT_FILTER_USING_SMARTPHONE);
+        filter.addAction(Constants.INTENT_FILTER_AUDIO);
         registerReceiver(mDeferServiceReceiver, filter);
 
         Log.i(Constants.DEBUG_TAG, "DeferService started.");
 
         return START_STICKY;
+    }
+
+    private void logSocialContextAttribute(SocialContext.Attribute attribute) {
+        String msg = "[Social Context] ";
+        switch (attribute.type) {
+            case Constants.CONTEXT_ATTRIBUTE_TYPES.ACTIVITY:
+                msg += "ACTIVITY: " + (attribute.doubleValue == 7.0 ? "WALKING" : "STILL");
+                break;
+            case Constants.CONTEXT_ATTRIBUTE_TYPES.OTHER_USING_SMARTPHONE:
+                msg += "OTHER_USING: " + attribute.boolValue;
+                break;
+            case Constants.CONTEXT_ATTRIBUTE_TYPES.WITH_OTHERS:
+                msg += "WITH_OTHERS: " + attribute.boolValue;
+                break;
+            case Constants.CONTEXT_ATTRIBUTE_TYPES.PITCH:
+                msg += "PITCH: " + attribute.doubleValue;
+                break;
+            case Constants.CONTEXT_ATTRIBUTE_TYPES.SPL:
+                msg += "SPL: " + attribute.doubleValue;
+                break;
+            default:
+                msg += "UNKNOWN CONTEXT";
+                break;
+        }
+
+        Log.d(Constants.DEBUG_TAG, msg);
     }
 
     @Override

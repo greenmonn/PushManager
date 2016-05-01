@@ -83,6 +83,10 @@ public class SocialContext {
             detectedActivitiesList.clear();
         }
 
+        if (prev.size() <= 0) {
+            return results;
+        }
+
         int totalCount = prev.size();
         int walkingCount = 0;
         int stillCount = 0;
@@ -112,6 +116,10 @@ public class SocialContext {
         synchronized (audioLock) {
             prev.addAll(audioResults);
             audioResults.clear();
+        }
+
+        if (prev.size() <= 0) {
+            return results;
         }
 
         int total = prev.size();
@@ -147,6 +155,10 @@ public class SocialContext {
             detectedBeaconsList.clear();
         }
 
+        if (prev.size() <= 0) {
+            return results;
+        }
+
         ArrayList<Beacon> prevBeacons = prev.get(prev.size()-1);
 
         //TODO: might need to set RSSI threshold.
@@ -168,7 +180,7 @@ public class SocialContext {
         return results;
     }
 
-    private class Attribute {
+    public class Attribute {
         public int type;
         public long time;
         public double doubleValue;
