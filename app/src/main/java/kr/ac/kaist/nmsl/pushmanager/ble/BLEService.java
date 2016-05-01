@@ -86,7 +86,7 @@ public class BLEService extends Service implements BeaconConsumer {
         dataFields.add(myNumber[0]);
         dataFields.add(myNumber[1]);
         dataFields.add(PhoneState.getInstance().getMyState().getCode());
-        dataFields.add(0L);// to be updated
+        dataFields.add((long)Boolean.compare(PhoneState.getInstance().getIsUsingSmartphone(), true));// to be updated
 
         return new Beacon.Builder()
                 .setId1(uuid)

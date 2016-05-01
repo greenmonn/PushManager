@@ -64,6 +64,7 @@ public class DeferService extends Service {
         filter.addAction(Constants.INTENT_FILTER_ACTIVITY);
         filter.addAction(Constants.INTENT_FILTER_NOTIFICATION);
         filter.addAction(Constants.INTENT_FILTER_BLE);
+        filter.addAction(Constants.INTENT_FILTER_USING_SMARTPHONE);
         registerReceiver(mDeferServiceReceiver, filter);
 
         Log.i(Constants.DEBUG_TAG, "DeferService started.");
@@ -143,6 +144,11 @@ public class DeferService extends Service {
                         }
                     }
                 }
+            }
+
+            if (intent.getAction().equals(Constants.INTENT_FILTER_USING_SMARTPHONE)) {
+                boolean isUsing = intent.getBooleanExtra("is_using", false);
+                PhoneState.getInstance().updateIsUsingSmartphone(isUsing);
             }
         }
     }

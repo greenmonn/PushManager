@@ -11,6 +11,7 @@ public class PhoneState {
     private static PhoneState instance = null;
 
     private State myState = State.Unknown;
+    private boolean isUsingSmartphone = false;
     private PhoneStateListener phoneStateListener = null;
 
     private PhoneState() {
@@ -49,6 +50,21 @@ public class PhoneState {
 
         long stateCode = beacon.getDataFields().get(2);
         return State.parse(stateCode);
+    }
+
+    public static boolean getIsUsingSmartphoneFromBeacon (Beacon beacon) {
+        if (beacon == null || beacon.getDataFields().size() < 4) {
+            return false;
+        }
+
+        long isUsingValue = beacon.getDataFields().get(3);
+
+        if (isUsingValue == 0) return true;
+        else return false;
+    }
+
+    public void updateIsUsingSmartphone (boolean isUsingSmartphone) {
+        this.isUsingSmartphone = isUsingSmartphone;
     }
 
     public static State getStateByDetectedActivity(int detectedActivity) {
@@ -94,6 +110,7 @@ public class PhoneState {
     public State getMyState(){
         return this.myState;
     }
+    public boolean getIsUsingSmartphone () { return this.isUsingSmartphone; }
 
     public enum State {
         Unknown(4),

@@ -98,12 +98,33 @@ public class SocialContext {
     private ArrayList<Attribute> processBeacons () {
         ArrayList<Attribute> results = new ArrayList<>();
         ArrayList<ArrayList<Beacon>> prev = new ArrayList<>();
+        boolean isWithOthers = true;
+        boolean isOtherUsingSmartphone = true;
+        int isUsingCount = 0;
 
         synchronized (beaconLock) {
             prev.addAll(detectedBeaconsList);
             detectedBeaconsList.clear();
         }
-        
+
+        ArrayList<Beacon> prevBeacons = prev.get(prev.size()-1);
+
+        //TODO: might need to set RSSI threshold.
+        if (prevBeacons.size() <= 0) {
+            isWithOthers = false;
+        }
+
+        for (Beacon beacon: prevBeacons) {
+            if (PhoneState.getIsUsingSmartphoneFromBeacon(beacon)) {
+                isUsingCount++;
+            }
+        }
+
+        isOtherUsingSmartphone = isUsingCount > 0 && isUsingCount < prevBeacons.size() - 1;
+
+        results.add(new Attribute(Constants.CONTEXT_ATTRIBUTE_TYPES.WITH_OTHERS, isWithOthers, new Date().getTime()));
+        results.add(new Attribute(Constants.CONTEXT_ATTRIBUTE_TYPES.OTHER_USING_SMARTPHONE, isOtherUsingSmartphone, new Date().getTime()));
+
         return results;
     }
 

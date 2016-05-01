@@ -45,6 +45,12 @@ public class EventRecorderService extends AccessibilityService {
         if (Constants.LOG_ENABLED) {
             Util.writeLogToFile(getApplicationContext(), Constants.LOG_NAME, msg);
         }
+
+        Intent i = new Intent(Constants.INTENT_FILTER_USING_SMARTPHONE);
+        i.putExtra("event_type", event.getEventType());
+        i.putExtra("event_text", getEventText(event));
+        i.putExtra("is_using", !getEventText(event).equals("Lock screen."));
+        sendBroadcast(i);
     }
 
     @Override
