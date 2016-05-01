@@ -129,6 +129,8 @@ public class DeferService extends Service {
                     ArrayList<Beacon> detectedBeacons =
                             intent.getParcelableArrayListExtra(Constants.BLUETOOTH_LE_BEACON);
 
+                    socialContext.addBeacon(detectedBeacons);
+
                     Log.d(Constants.DEBUG_TAG, "=================== detected beacons ==================");
                     for (Beacon detectedBeacon : detectedBeacons) {
                         Log.d(Constants.DEBUG_TAG, detectedBeacon.getBluetoothAddress() + ", " + detectedBeacon.getDataFields().size() + ", " + detectedBeacon.getExtraDataFields().size() + ", " + String.valueOf(detectedBeacon.getRssi()));
