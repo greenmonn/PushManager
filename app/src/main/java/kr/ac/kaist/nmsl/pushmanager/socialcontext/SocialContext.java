@@ -114,6 +114,24 @@ public class SocialContext {
             audioResults.clear();
         }
 
+        int total = prev.size();
+        double spl = 0;
+        int detectedPitch = 0;
+        double detectedPitchThreshold = 0.8;
+
+        for (AudioResult audioResult:prev) {
+            spl+=audioResult.spl;
+            if (audioResult.pitch > -1.0) {
+                detectedPitch++;
+            }
+        }
+
+        double pitchDetectedPortion = (double)detectedPitch/(double)total;
+        double avgSPL = (double)spl/(double)total;
+
+        results.add(new Attribute(Constants.CONTEXT_ATTRIBUTE_TYPES.PITCH, pitchDetectedPortion, new Date().getTime()));
+        results.add(new Attribute(Constants.CONTEXT_ATTRIBUTE_TYPES.SPL, avgSPL, new Date().getTime()));
+
         return results;
     }
 
