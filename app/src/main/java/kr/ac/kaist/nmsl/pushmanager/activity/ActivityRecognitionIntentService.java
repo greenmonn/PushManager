@@ -8,6 +8,7 @@ import android.util.Log;
 import com.google.android.gms.location.ActivityRecognitionResult;
 import com.google.android.gms.location.DetectedActivity;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import kr.ac.kaist.nmsl.pushmanager.Constants;
@@ -29,9 +30,12 @@ public class ActivityRecognitionIntentService extends IntentService {
         ActivityRecognitionResult result = ActivityRecognitionResult.extractResult(intent);
         handleDetectedActivities( result.getProbableActivities() );
 
+        ArrayList<DetectedActivity> detectedActivities = new ArrayList<>(result.getProbableActivities());
+
         Intent i = new  Intent(Constants.INTENT_FILTER_ACTIVITY);
         i.putExtra("activity_probability", result.getMostProbableActivity().getConfidence());
         i.putExtra("activity_type", result.getMostProbableActivity().getType());
+        i.putParcelableArrayListExtra("detected_activities", detectedActivities);
 
         sendBroadcast(i);
     }

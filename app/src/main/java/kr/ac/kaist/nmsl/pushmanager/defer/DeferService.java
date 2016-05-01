@@ -11,6 +11,8 @@ import android.os.Vibrator;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.google.android.gms.location.DetectedActivity;
+
 import org.altbeacon.beacon.Beacon;
 
 import java.util.*;
@@ -112,6 +114,10 @@ public class DeferService extends Service {
                 PhoneState.getInstance().updateMyState(state);
                 Log.d(Constants.DEBUG_TAG, "[Detected Activity] " + state.name() + ": " + prob);
                 Toast.makeText(context, "[Detected Activity] " + state.name() + ": " + prob, Toast.LENGTH_SHORT).show();
+
+                if (intent.hasExtra("detected_activities")) {
+                    ArrayList<DetectedActivity> detectedActivities = intent.getParcelableArrayListExtra("detected_activities");
+                }
             }
 
             if (intent.getAction().equals(Constants.INTENT_FILTER_BLE)) {
