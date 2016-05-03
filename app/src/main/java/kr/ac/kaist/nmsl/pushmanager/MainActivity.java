@@ -37,7 +37,6 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.ActivityRecognition;
 
 import kr.ac.kaist.nmsl.pushmanager.activity.ActivityRecognitionIntentService;
-import kr.ac.kaist.nmsl.pushmanager.activity.StepCounterService;
 import kr.ac.kaist.nmsl.pushmanager.ble.BLEService;
 import kr.ac.kaist.nmsl.pushmanager.audio.AudioProcessorService;
 import kr.ac.kaist.nmsl.pushmanager.defer.DeferService;
@@ -45,18 +44,19 @@ import kr.ac.kaist.nmsl.pushmanager.notification.NotificationService;
 import kr.ac.kaist.nmsl.pushmanager.util.ServiceUtil;
 import kr.ac.kaist.nmsl.pushmanager.util.Util;
 
-public class MainActivity extends Activity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener{
+public class MainActivity extends Activity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
     private static final int ACTIVITY_RESULT_NOTIFICATION_LISTENER_SETTINGS = 142;
     public static final String FILE_UTIL_FILE_DATETIME_FORMAT = "yyyyMMdd_HHmmss";
 
     private Context context;
 
-    enum ServiceState{
+    enum ServiceState {
         NoService,
         NoIntervention,
         DeferService,
         WarningService
     }
+
     private ServiceState currentServiceState;
 
     private Timer mTimer;
@@ -88,7 +88,7 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
             public void onFinish() {
             }
         };*/
-        mDPM = (DevicePolicyManager)getSystemService(Context.DEVICE_POLICY_SERVICE);
+        mDPM = (DevicePolicyManager) getSystemService(Context.DEVICE_POLICY_SERVICE);
 
         mBroadcastReceiver = new MainActivityBroadcastReceiver();
 
@@ -96,7 +96,7 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
         //if(ServiceUtil.isServiceRunning(context, WarningService.class)) {
         //    currentServiceState = ServiceState.WarningService;
         //} else if (ServiceUtil.isServiceRunning(context, DeferService.class)){
-        if (ServiceUtil.isServiceRunning(context, DeferService.class)){
+        if (ServiceUtil.isServiceRunning(context, DeferService.class)) {
             currentServiceState = ServiceState.DeferService;
         } else {
             currentServiceState = ServiceState.NoService;
@@ -122,51 +122,57 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
             public void onClick(View v) {
                 switch (currentServiceState) {
                     case DeferService:
-                    //case WarningService:
+                        //case WarningService:
                     case NoIntervention:
                         stopAllServices();
                         break;
                     case NoService:
                         Toast.makeText(context, "Start managing cellphone use", Toast.LENGTH_SHORT).show();
 
-                        mTimer = new Timer();
-                        final long duration = Long.parseLong(((EditText)findViewById(R.id.edt_duration)).getText().toString()) * 1000L;
+                        try {
+                            mTimer = new Timer();
+                            final long duration = Long.parseLong(((EditText) findViewById(R.id.edt_duration)).getText().toString()) * 1000L;
 
-                        final RadioGroup radioPushManagementMethod = (RadioGroup) findViewById(R.id.group_mode);
-                        int pushManagementMethodId = radioPushManagementMethod.getCheckedRadioButtonId();
+                            final RadioGroup radioPushManagementMethod = (RadioGroup) findViewById(R.id.group_mode);
+                            int pushManagementMethodId = radioPushManagementMethod.getCheckedRadioButtonId();
 
-                        SimpleDateFormat fileDateFormat = new SimpleDateFormat(FILE_UTIL_FILE_DATETIME_FORMAT);
-                        Constants.LOG_ENABLED = true;
+                            SimpleDateFormat fileDateFormat = new SimpleDateFormat(FILE_UTIL_FILE_DATETIME_FORMAT);
+                            Constants.LOG_ENABLED = true;
 
-                        switch (pushManagementMethodId) {
-                            case R.id.radio_btn_no_intervention:
-                                Constants.LOG_NAME = fileDateFormat.format(new Date()) + "_" + ServiceState.NoIntervention.toString();
-                                startNoInterventionService();
-                                break;
-                            case R.id.radio_btn_defer:
-                                Constants.LOG_NAME = fileDateFormat.format(new Date()) + "_" + ServiceState.DeferService.toString();
-                                startDeferService();
-                                break;
-                            //case R.id.radio_btn_warning:
-                            //    Constants.LOG_NAME = fileDateFormat.format(new Date()) + "_" + ServiceState.WarningService.toString();
-                            //    startWarningService();
-                            //    break;
-                        }
-
-                        startCountDownTimer();
-                        mTimer.schedule(new TimerTask() {
-                            @Override
-                            public void run() {
-                                runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        stopAllServices();
-                                    }
-                                });
+                            switch (pushManagementMethodId) {
+                                case R.id.radio_btn_no_intervention:
+                                    Constants.LOG_NAME = fileDateFormat.format(new Date()) + "_" + ServiceState.NoIntervention.toString();
+                                    startNoInterventionService();
+                                    break;
+                                case R.id.radio_btn_defer:
+                                    Constants.LOG_NAME = fileDateFormat.format(new Date()) + "_" + ServiceState.DeferService.toString();
+                                    startDeferService();
+                                    break;
+                                //case R.id.radio_btn_warning:
+                                //    Constants.LOG_NAME = fileDateFormat.format(new Date()) + "_" + ServiceState.WarningService.toString();
+                                //    startWarningService();
+                                //    break;
                             }
-                        }, duration);
 
-                        mDPM.lockNow();
+                            startCountDownTimer();
+                            mTimer.schedule(new TimerTask() {
+                                @Override
+                                public void run() {
+                                    runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            stopAllServices();
+                                        }
+                                    });
+                                }
+                            }, duration);
+
+
+                            mDPM.lockNow();
+                        } catch (Exception e) {
+                            Toast.makeText(context, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                            stopAllServices();
+                        }
                         break;
                 }
             }
@@ -254,8 +260,8 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
         }
     }*/
 
-    private void startDeferService(){
-        final long duration = Long.parseLong(((EditText)findViewById(R.id.edt_duration)).getText().toString()) * 1000L;
+    private void startDeferService() {
+        final long duration = Long.parseLong(((EditText) findViewById(R.id.edt_duration)).getText().toString()) * 1000L;
         Intent intent = new Intent(context, DeferService.class);
         intent.putExtra("duration", duration);
         context.startService(intent);
@@ -280,7 +286,7 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
         }
     }
 
-    private void stopAllServices(){
+    private void stopAllServices() {
         //context.stopService(new Intent(context, WarningService.class));
         context.stopService(new Intent(context, DeferService.class));
         currentServiceState = ServiceState.NoService;
@@ -304,7 +310,7 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
     }
 
     private void startCountDownTimer() {
-        final long duration = Long.parseLong(((EditText)findViewById(R.id.edt_duration)).getText().toString()) * 1000L;
+        final long duration = Long.parseLong(((EditText) findViewById(R.id.edt_duration)).getText().toString()) * 1000L;
         mCountDownTimer = new CountDownTimer(duration, 1000) {
 
             @Override
@@ -313,19 +319,19 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
                 String remainingTime = String.format("%02d:%02d",
                         TimeUnit.MILLISECONDS.toMinutes(millisUntilFinished),
                         TimeUnit.MILLISECONDS.toSeconds(millisUntilFinished) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millisUntilFinished))
-                        );
+                );
                 txtRemainingTime.setText(remainingTime);
             }
 
             @Override
             public void onFinish() {
                 final TextView txtRemainingTime = (TextView) findViewById(R.id.txt_ramaining_time);
-                txtRemainingTime.setText(String.format(getString(R.string.time_zero), currentServiceState.ordinal(), ServiceState.values().length - 1));
+                txtRemainingTime.setText(R.string.time_zero);
             }
         }.start();
     }
 
-    private void updateUIComponents(){
+    private void updateUIComponents() {
         final Button btnControl = (Button) findViewById(R.id.btn_control);
         final TextView txtRemainingTime = (TextView) findViewById(R.id.txt_ramaining_time);
         final TextView txtServiceStatus = (TextView) findViewById(R.id.txt_service_status);
@@ -397,7 +403,7 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
     }
 
     public PendingIntent getActivityDetectionPendingIntent() {
-        Intent intent = new Intent( this, ActivityRecognitionIntentService.class );
+        Intent intent = new Intent(this, ActivityRecognitionIntentService.class);
         PendingIntent pendingIntent = PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         return pendingIntent;
