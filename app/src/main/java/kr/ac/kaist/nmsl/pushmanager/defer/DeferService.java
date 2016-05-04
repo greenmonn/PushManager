@@ -8,6 +8,7 @@ import android.content.IntentFilter;
 import android.media.AudioManager;
 import android.os.IBinder;
 import android.os.Vibrator;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.widget.Switch;
 import android.widget.Toast;
@@ -19,6 +20,7 @@ import org.altbeacon.beacon.Beacon;
 import java.util.*;
 
 import kr.ac.kaist.nmsl.pushmanager.Constants;
+import kr.ac.kaist.nmsl.pushmanager.MainActivity;
 import kr.ac.kaist.nmsl.pushmanager.activity.PhoneState;
 import kr.ac.kaist.nmsl.pushmanager.audio.AudioResult;
 import kr.ac.kaist.nmsl.pushmanager.socialcontext.SocialContext;
@@ -72,11 +74,17 @@ public class DeferService extends Service {
                 HashMap<Integer, SocialContext.Attribute> socialContextAttributes = socialContext.getCurrentContext();
                 boolean isBreakpoint = socialContext.getIsBreakpoint(socialContextAttributes);
 
+                Intent localIntent = new Intent(Constants.INTENT_FILTER_BREAKPOINT);
+                localIntent.putExtra("breakpoint", isBreakpoint);
+                LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(localIntent);
+
                 for (Integer key: socialContextAttributes.keySet()) {
                     logSocialContextAttribute(socialContextAttributes.get(key));
                 }
 
             }
+
+
         }, getContextDuration, getContextDuration);
 
         IntentFilter filter = new IntentFilter();

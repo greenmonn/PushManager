@@ -47,6 +47,7 @@ public class Constants {
     public static final String INTENT_FILTER_NOTIFICATION = "kr.ac.kaist.nmsl.pushmanager.notification";
     public static final String INTENT_FILTER_ACTIVITY = "kr.ac.kaist.nmsl.pushmanager.action.activity";
     public static final String INTENT_FILTER_BLE = "kr.ac.kaist.nmsl.pushmanager.action.ble";
+    public static final String INTENT_FILTER_BREAKPOINT = "kr.ac.kaist.nmsl.pushmanager.action.breakpoint";
     public static final String INTENT_FILTER_USING_SMARTPHONE = "kr.ac.kaist.nmsl.pushmanager.action.usingsmartphone";
     public static final String INTENT_FILTER_AUDIO = "kr.ac.kaist.nmsl.pushmanager.action.audio";
 

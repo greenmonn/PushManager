@@ -358,6 +358,7 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
     protected void onResume() {
         IntentFilter filter = new IntentFilter();
         filter.addAction(Constants.INTENT_FILTER_BLE);
+        filter.addAction(Constants.INTENT_FILTER_BREAKPOINT);
         LocalBroadcastManager.getInstance(this).registerReceiver(mBroadcastReceiver, filter);
         super.onResume();
     }
@@ -429,6 +430,10 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
                             BluetoothAdapter.ACTION_REQUEST_ENABLE);
                     startActivityForResult(enableBtIntent, Constants.REQUEST_ENABLE_BT);
                 }
+            }
+
+            if (intent.getAction().equals(Constants.INTENT_FILTER_BREAKPOINT)) {
+                Toast.makeText(context, "isBreakpont: " + intent.getBooleanExtra("breakpoint", false), Toast.LENGTH_SHORT).show();
             }
         }
     }
