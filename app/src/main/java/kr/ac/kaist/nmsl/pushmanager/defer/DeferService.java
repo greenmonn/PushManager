@@ -82,7 +82,7 @@ public class DeferService extends Service {
 
                 Intent localIntent = new Intent(Constants.INTENT_FILTER_BREAKPOINT);
                 localIntent.putExtra("breakpoint", isBreakpoint);
-                LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(localIntent);
+                sendBroadcast(localIntent);
 
                 for (Integer key : socialContextAttributes.keySet()) {
                     logSocialContextAttribute(socialContextAttributes.get(key));
