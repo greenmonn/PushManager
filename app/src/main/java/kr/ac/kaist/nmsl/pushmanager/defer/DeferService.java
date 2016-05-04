@@ -40,7 +40,11 @@ public class DeferService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        socialContext = new SocialContext();
+        try {
+            socialContext = new SocialContext(getAssets().open(Constants.LABALED_DATA_FILE_NAME));
+        } catch (Exception e) {
+            socialContext = null;
+        }
 
         mNotificationCount = 0;
 
@@ -66,6 +70,7 @@ public class DeferService extends Service {
                 }
 
                 HashMap<Integer, SocialContext.Attribute> socialContextAttributes = socialContext.getCurrentContext();
+                boolean isBreakpoint = socialContext.getIsBreakpoint(socialContextAttributes);
 
                 for (Integer key: socialContextAttributes.keySet()) {
                     logSocialContextAttribute(socialContextAttributes.get(key));
@@ -91,13 +96,13 @@ public class DeferService extends Service {
         String msg = "[Social Context] ";
         switch (attribute.type) {
             case Constants.CONTEXT_ATTRIBUTE_TYPES.ACTIVITY:
-                msg += "ACTIVITY: " + (attribute.doubleValue == 7.0 ? "WALKING" : "STILL");
+                msg += "ACTIVITY: " + attribute.stringValue;
                 break;
             case Constants.CONTEXT_ATTRIBUTE_TYPES.OTHER_USING_SMARTPHONE:
-                msg += "OTHER_USING: " + attribute.boolValue;
+                msg += "OTHER_USING: " + attribute.stringValue;
                 break;
             case Constants.CONTEXT_ATTRIBUTE_TYPES.WITH_OTHERS:
-                msg += "WITH_OTHERS: " + attribute.boolValue;
+                msg += "WITH_OTHERS: " + attribute.doubleValue;
                 break;
             case Constants.CONTEXT_ATTRIBUTE_TYPES.PITCH:
                 msg += "PITCH: " + attribute.doubleValue;
@@ -155,7 +160,7 @@ public class DeferService extends Service {
                 PhoneState.State state = getActivityName(intent.getIntExtra("activity_type", -1));
                 PhoneState.getInstance().updateMyState(state);
                 Log.d(Constants.DEBUG_TAG, "[Detected Activity] " + state.name() + ": " + prob);
-                Toast.makeText(context, "[Detected Activity] " + state.name() + ": " + prob, Toast.LENGTH_SHORT).show();
+                //Toast.makeText(context, "[Detected Activity] " + state.name() + ": " + prob, Toast.LENGTH_SHORT).show();
 
                 if (intent.hasExtra("detected_activities")) {
                     ArrayList<DetectedActivity> detectedActivities = intent.getParcelableArrayListExtra("detected_activities");
