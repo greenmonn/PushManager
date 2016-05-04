@@ -67,8 +67,6 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 
     private GoogleApiClient mGoogleApiClient;
 
-    private int mOldRingerMode;
-
     private MainActivityBroadcastReceiver mBroadcastReceiver;
 
     private Handler mHandler;
@@ -233,15 +231,6 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
             return;
         }
 
-        // Save current ring state
-        try {
-            AudioManager audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
-            mOldRingerMode = audioManager.getRingerMode();
-        } catch (Exception e) {
-            Toast.makeText(context, "Failed to save old ringer mode. " + e.getMessage(), Toast.LENGTH_LONG).show();
-            return;
-        }
-
         final RadioGroup radioPushManagementMethod = (RadioGroup) findViewById(R.id.group_mode);
         final int firstPushManagementMethodId = radioPushManagementMethod.getCheckedRadioButtonId();
 
@@ -293,10 +282,6 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 
             mCountDownTimer.cancel();
             Log.d(Constants.DEBUG_TAG, "Cancelling all timers");
-
-            // Recover old ringer mode
-            ((AudioManager) context.getSystemService(Context.AUDIO_SERVICE)).setRingerMode(mOldRingerMode);
-            Log.d(Constants.DEBUG_TAG, "Recovering ringer mode to " + mOldRingerMode);
         }
         updateUIComponents();
 

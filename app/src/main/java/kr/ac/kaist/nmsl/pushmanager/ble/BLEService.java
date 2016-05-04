@@ -70,6 +70,7 @@ public class BLEService extends Service implements BeaconConsumer {
 
     @Override
     public void onDestroy() {
+        isInitialized = false;
 
         if (BLEUtil.isAdvertisingSupportedDevice(this)) {
             advertiseBluetoothDevice(false);

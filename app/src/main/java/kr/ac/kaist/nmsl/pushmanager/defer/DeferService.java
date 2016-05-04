@@ -33,6 +33,7 @@ public class DeferService extends Service {
     private Timer mTimer;
     private int mNotificationCount;
     private SocialContext socialContext;
+    private int mOldRingerMode;
 
     private LocalPushThread mLocalPushThread = null;
 
@@ -50,6 +51,7 @@ public class DeferService extends Service {
         mDeferServiceReceiver = new DeferServiceReceiver();
 
         mAudioManager = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
+        mOldRingerMode = mAudioManager.getRingerMode();
         mAudioManager.setRingerMode(AudioManager.RINGER_MODE_SILENT);
 
         // Start push thread
@@ -126,7 +128,7 @@ public class DeferService extends Service {
     @Override
     public void onDestroy() {
         unregisterReceiver(mDeferServiceReceiver);
-        mAudioManager.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
+        mAudioManager.setRingerMode(mOldRingerMode);
 
         if(mLocalPushThread != null) {
             mLocalPushThread.terminate();
