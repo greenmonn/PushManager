@@ -73,6 +73,9 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
     private PushManagerRunnable mPushManagerRunnable;
     private long mPushManagerRunnableInterval;
 
+    private AudioManager mAudioManager;
+    private int mOldRingerMode = -1;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -94,6 +97,8 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
             }
         };*/
         mDPM = (DevicePolicyManager) getSystemService(Context.DEVICE_POLICY_SERVICE);
+
+        mAudioManager = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
 
         mBroadcastReceiver = new MainActivityBroadcastReceiver();
 
@@ -247,6 +252,9 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
     }
 
     private void startDeferService() {
+        mOldRingerMode = mAudioManager.getRingerMode();
+        mAudioManager.setRingerMode(AudioManager.RINGER_MODE_SILENT);
+
         final long duration = Long.parseLong(((EditText) findViewById(R.id.edt_duration)).getText().toString()) * 1000L;
         Intent intent = new Intent(context, DeferService.class);
         intent.putExtra("duration", duration);
@@ -282,6 +290,11 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 
             mCountDownTimer.cancel();
             Log.d(Constants.DEBUG_TAG, "Cancelling all timers");
+
+            // Recover old ringer mode
+            Log.d(Constants.DEBUG_TAG, "Recovering ringer mode to " + mOldRingerMode);
+            mAudioManager.setRingerMode(mOldRingerMode);
+            mOldRingerMode = -1;
         }
         updateUIComponents();
 
@@ -359,13 +372,15 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
     protected void onResume() {
         IntentFilter filter = new IntentFilter();
         filter.addAction(Constants.INTENT_FILTER_BLE);
-        LocalBroadcastManager.getInstance(this).registerReceiver(mBroadcastReceiver, filter);
+        filter.addAction(Constants.INTENT_FILTER_NOTIFICATION);
+        filter.addAction(Constants.INTENT_FILTER_USING_SMARTPHONE);
+        registerReceiver(mBroadcastReceiver, filter);
         super.onResume();
     }
 
     @Override
     protected void onPause() {
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(mBroadcastReceiver);
+        unregisterReceiver(mBroadcastReceiver);
         super.onPause();
     }
 
@@ -429,6 +444,15 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
                     Intent enableBtIntent = new Intent(
                             BluetoothAdapter.ACTION_REQUEST_ENABLE);
                     startActivityForResult(enableBtIntent, Constants.REQUEST_ENABLE_BT);
+                }
+            }
+
+            if (intent.getAction().equals(Constants.INTENT_FILTER_NOTIFICATION)) {
+                if (currentServiceState != ServiceState.DeferService && mOldRingerMode != -1) {
+                    // Need to recover
+                    Log.d(Constants.DEBUG_TAG, "Recovering ringer mode to " + mOldRingerMode + " since device is in " + currentServiceState);
+                    mAudioManager.setRingerMode(mOldRingerMode);
+                    mOldRingerMode = -1;
                 }
             }
         }

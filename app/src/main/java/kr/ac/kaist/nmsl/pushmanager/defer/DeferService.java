@@ -28,12 +28,10 @@ import kr.ac.kaist.nmsl.pushmanager.util.BLEUtil;
 public class DeferService extends Service {
     private static final int VIBRATION_DURATION = 500;
 
-    private AudioManager mAudioManager;
     private Vibrator mVibrator;
     private Timer mTimer;
     private int mNotificationCount;
     private SocialContext socialContext;
-    private int mOldRingerMode;
 
     private LocalPushThread mLocalPushThread = null;
 
@@ -49,10 +47,6 @@ public class DeferService extends Service {
         mNotificationCount = 0;
 
         mDeferServiceReceiver = new DeferServiceReceiver();
-
-        mAudioManager = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
-        mOldRingerMode = mAudioManager.getRingerMode();
-        mAudioManager.setRingerMode(AudioManager.RINGER_MODE_SILENT);
 
         // Start push thread
         if (mLocalPushThread != null) {
@@ -128,9 +122,8 @@ public class DeferService extends Service {
     @Override
     public void onDestroy() {
         unregisterReceiver(mDeferServiceReceiver);
-        mAudioManager.setRingerMode(mOldRingerMode);
 
-        if(mLocalPushThread != null) {
+        if (mLocalPushThread != null) {
             mLocalPushThread.terminate();
         }
 
