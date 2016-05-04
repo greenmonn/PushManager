@@ -36,7 +36,7 @@ public class PhoneState {
 
             // call callbacks
             if (this.phoneStateListener != null) {
-                phoneStateListener.onMyPhoneStateChanged(oldState, newState);
+                phoneStateListener.onMyPhoneStateChanged();
             }
         }
 
@@ -65,6 +65,10 @@ public class PhoneState {
 
     public void updateIsUsingSmartphone (boolean isUsingSmartphone) {
         this.isUsingSmartphone = isUsingSmartphone;
+
+        if (this.phoneStateListener != null) {
+            phoneStateListener.onMyPhoneStateChanged();
+        }
     }
 
     public static State getStateByDetectedActivity(int detectedActivity) {
@@ -148,6 +152,6 @@ public class PhoneState {
     }
 
     public interface PhoneStateListener {
-        public void onMyPhoneStateChanged(State oldState, State newState);
+        public void onMyPhoneStateChanged();
     }
 }

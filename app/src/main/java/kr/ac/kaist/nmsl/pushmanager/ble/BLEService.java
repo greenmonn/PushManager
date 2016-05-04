@@ -51,10 +51,10 @@ public class BLEService extends Service implements BeaconConsumer {
 
         // Add this to phone state
         PhoneState.getInstance().addListener(new PhoneState.PhoneStateListener() {
-            public void onMyPhoneStateChanged(PhoneState.State oldState, PhoneState.State newState) {
-                Log.d(Constants.TAG, "Updating beacon state from " + oldState.getCode() + " to " + newState.getCode());
+            public void onMyPhoneStateChanged() {
+                //Log.d(Constants.TAG, "Updating beacon state from " + oldState.getCode() + " to " + newState.getCode());
                 if (beaconTransmitter != null) {
-                    Log.d(Constants.TAG, "Restarting BeaconTransmitter with new state: " + newState.getCode());
+                    //Log.d(Constants.TAG, "Restarting BeaconTransmitter with new state: " + newState.getCode());
                     if (beaconTransmitter.isStarted()) {
                         beaconTransmitter.stopAdvertising();
                     }
@@ -87,6 +87,7 @@ public class BLEService extends Service implements BeaconConsumer {
         dataFields.add(myNumber[0]);
         dataFields.add(myNumber[1]);
         dataFields.add(PhoneState.getInstance().getMyState().getCode());
+
         dataFields.add((long)Boolean.compare(PhoneState.getInstance().getIsUsingSmartphone(), true));// to be updated
 
         return new Beacon.Builder()

@@ -11,6 +11,7 @@ public class Constants {
     public static final String TAG = "PM";
 
     public static final String DIR_NAME = "CS472_PUSH_MANAGER";
+    public static final String LABALED_DATA_FILE_NAME = "breakpoint_labeled.arff";
     public static String LOG_NAME = "";
     public static boolean LOG_ENABLED = false;
 
@@ -46,6 +47,7 @@ public class Constants {
     public static final String INTENT_FILTER_NOTIFICATION = "kr.ac.kaist.nmsl.pushmanager.notification";
     public static final String INTENT_FILTER_ACTIVITY = "kr.ac.kaist.nmsl.pushmanager.action.activity";
     public static final String INTENT_FILTER_BLE = "kr.ac.kaist.nmsl.pushmanager.action.ble";
+    public static final String INTENT_FILTER_BREAKPOINT = "kr.ac.kaist.nmsl.pushmanager.action.breakpoint";
     public static final String INTENT_FILTER_USING_SMARTPHONE = "kr.ac.kaist.nmsl.pushmanager.action.usingsmartphone";
     public static final String INTENT_FILTER_AUDIO = "kr.ac.kaist.nmsl.pushmanager.action.audio";
 
