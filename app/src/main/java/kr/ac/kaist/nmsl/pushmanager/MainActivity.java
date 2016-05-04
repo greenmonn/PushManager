@@ -9,9 +9,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 
+import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Environment;
+import android.os.Handler;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -26,6 +28,7 @@ import android.widget.Toast;
 
 import java.io.File;
 
+import java.math.BigInteger;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Timer;
@@ -54,19 +57,23 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
         NoService,
         NoIntervention,
         DeferService,
-        WarningService
     }
 
     private ServiceState currentServiceState;
 
-    private Timer mTimer;
     private CountDownTimer mCountDownTimer;
 
     private DevicePolicyManager mDPM;
 
     private GoogleApiClient mGoogleApiClient;
 
+    private int mOldRingerMode;
+
     private MainActivityBroadcastReceiver mBroadcastReceiver;
+
+    private Handler mHandler;
+    private PushManagerRunnable mPushManagerRunnable;
+    private long mPushManagerRunnableInterval;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -122,57 +129,12 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
             public void onClick(View v) {
                 switch (currentServiceState) {
                     case DeferService:
-                        //case WarningService:
                     case NoIntervention:
-                        stopAllServices();
+                        stopAllServices(true);
                         break;
                     case NoService:
-                        Toast.makeText(context, "Start managing cellphone use", Toast.LENGTH_SHORT).show();
-
-                        try {
-                            mTimer = new Timer();
-                            final long duration = Long.parseLong(((EditText) findViewById(R.id.edt_duration)).getText().toString()) * 1000L;
-
-                            final RadioGroup radioPushManagementMethod = (RadioGroup) findViewById(R.id.group_mode);
-                            int pushManagementMethodId = radioPushManagementMethod.getCheckedRadioButtonId();
-
-                            SimpleDateFormat fileDateFormat = new SimpleDateFormat(FILE_UTIL_FILE_DATETIME_FORMAT);
-                            Constants.LOG_ENABLED = true;
-
-                            switch (pushManagementMethodId) {
-                                case R.id.radio_btn_no_intervention:
-                                    Constants.LOG_NAME = fileDateFormat.format(new Date()) + "_" + ServiceState.NoIntervention.toString();
-                                    startNoInterventionService();
-                                    break;
-                                case R.id.radio_btn_defer:
-                                    Constants.LOG_NAME = fileDateFormat.format(new Date()) + "_" + ServiceState.DeferService.toString();
-                                    startDeferService();
-                                    break;
-                                //case R.id.radio_btn_warning:
-                                //    Constants.LOG_NAME = fileDateFormat.format(new Date()) + "_" + ServiceState.WarningService.toString();
-                                //    startWarningService();
-                                //    break;
-                            }
-
-                            startCountDownTimer();
-                            mTimer.schedule(new TimerTask() {
-                                @Override
-                                public void run() {
-                                    runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            stopAllServices();
-                                        }
-                                    });
-                                }
-                            }, duration);
-
-
-                            mDPM.lockNow();
-                        } catch (Exception e) {
-                            Toast.makeText(context, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                            stopAllServices();
-                        }
+                        // Need to start push manager service
+                        startPushManagerServices();
                         break;
                 }
             }
@@ -260,6 +222,41 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
         }
     }*/
 
+    private void startPushManagerServices() {
+        // Get duration of the experiment
+        long duration = 0;
+        try {
+            duration = Long.parseLong(((EditText) findViewById(R.id.edt_duration)).getText().toString()) * 1000L;
+            Toast.makeText(context, "Start managing cellphone use", Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            Toast.makeText(context, "Failed to parse duration. " + e.getMessage(), Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        // Save current ring state
+        try {
+            AudioManager audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+            mOldRingerMode = audioManager.getRingerMode();
+        } catch (Exception e) {
+            Toast.makeText(context, "Failed to save old ringer mode. " + e.getMessage(), Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        final RadioGroup radioPushManagementMethod = (RadioGroup) findViewById(R.id.group_mode);
+        final int firstPushManagementMethodId = radioPushManagementMethod.getCheckedRadioButtonId();
+
+        Constants.LOG_ENABLED = true;
+
+        mHandler = new Handler();
+        mPushManagerRunnable = new PushManagerRunnable(firstPushManagementMethodId);
+        mPushManagerRunnableInterval = duration / 4;
+        mPushManagerRunnable.run();
+
+        startCountDownTimer();
+
+        mDPM.lockNow();
+    }
+
     private void startDeferService() {
         final long duration = Long.parseLong(((EditText) findViewById(R.id.edt_duration)).getText().toString()) * 1000L;
         Intent intent = new Intent(context, DeferService.class);
@@ -286,17 +283,30 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
         }
     }
 
-    private void stopAllServices() {
-        //context.stopService(new Intent(context, WarningService.class));
+    private void stopAllServices(boolean stopForGood) {
         context.stopService(new Intent(context, DeferService.class));
         currentServiceState = ServiceState.NoService;
-        mTimer.cancel();
-        mCountDownTimer.cancel();
+        if (stopForGood) {
+            if (mHandler != null && mPushManagerRunnable != null) {
+                mHandler.removeCallbacks(mPushManagerRunnable);
+            }
+
+            mCountDownTimer.cancel();
+            Log.d(Constants.DEBUG_TAG, "Cancelling all timers");
+
+            // Recover old ringer mode
+            ((AudioManager) context.getSystemService(Context.AUDIO_SERVICE)).setRingerMode(mOldRingerMode);
+            Log.d(Constants.DEBUG_TAG, "Recovering ringer mode to " + mOldRingerMode);
+        }
         updateUIComponents();
-        Log.d(Constants.DEBUG_TAG, "All ended");
+
         if (Constants.LOG_ENABLED) {
-            Util.writeLogToFile(context, Constants.LOG_NAME, "==============All ended===============");
-            Constants.LOG_ENABLED = false;
+            if (stopForGood) {
+                Util.writeLogToFile(context, Constants.LOG_NAME, "==============All ended===============");
+                Constants.LOG_ENABLED = false;
+            } else {
+                Util.writeLogToFile(context, Constants.LOG_NAME, "++++++++++++++Service Switch++++++++++++++");
+            }
         }
 
         if (mGoogleApiClient.isConnected()) {
@@ -436,6 +446,49 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
                     startActivityForResult(enableBtIntent, Constants.REQUEST_ENABLE_BT);
                 }
             }
+        }
+    }
+
+    public class PushManagerRunnable implements Runnable {
+        private int evenManagementMethodId, oddManagementMethodId;
+        private int toggleCount = 0;
+
+        public PushManagerRunnable(int firstPushManagementMethodId) {
+            if (firstPushManagementMethodId == R.id.radio_btn_no_intervention) {
+                evenManagementMethodId = R.id.radio_btn_no_intervention;
+                oddManagementMethodId = R.id.radio_btn_defer;
+            } else if (firstPushManagementMethodId == R.id.radio_btn_defer) {
+                evenManagementMethodId = R.id.radio_btn_defer;
+                oddManagementMethodId = R.id.radio_btn_no_intervention;
+            }
+        }
+
+        @Override
+        public void run() {
+            if (toggleCount >= 4) {
+                stopAllServices(true);
+                return;
+            }
+
+            stopAllServices(false);
+
+            final SimpleDateFormat fileDateFormat = new SimpleDateFormat(FILE_UTIL_FILE_DATETIME_FORMAT);
+            int pushManagementMethodId = toggleCount % 2 == 0 ? evenManagementMethodId : oddManagementMethodId;
+            switch (pushManagementMethodId) {
+                case R.id.radio_btn_no_intervention:
+                    Constants.LOG_NAME = fileDateFormat.format(new Date()) + "_" + ServiceState.NoIntervention.toString();
+                    Log.d(Constants.DEBUG_TAG, "Starting no intervention service " + toggleCount);
+                    startNoInterventionService();
+                    break;
+                case R.id.radio_btn_defer:
+                    Constants.LOG_NAME = fileDateFormat.format(new Date()) + "_" + ServiceState.DeferService.toString();
+                    Log.d(Constants.DEBUG_TAG, "Starting defer service " + toggleCount);
+                    startDeferService();
+                    break;
+            }
+
+            toggleCount++;
+            mHandler.postDelayed(mPushManagerRunnable, mPushManagerRunnableInterval);
         }
     }
 }

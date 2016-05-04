@@ -89,12 +89,6 @@
             android:text="@string/defer"
             android:id="@+id/radio_btn_defer" />
 
-        <RadioButton
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/warning"
-            android:id="@+id/radio_btn_warning"
-            android:visibility="invisible" />
     </RadioGroup>
 
 </RelativeLayout>
