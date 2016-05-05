@@ -35,7 +35,7 @@ public class AudioProcessorService extends Service {
                     @Override
                     public void handleResult(boolean isSilence, double currentSPL, double pitch, AudioEvent audioEvent) {
                         //if (!isSilence) {
-                            Log.d(Constants.DEBUG_TAG, isSilence + ", " + currentSPL + ", " + audioEvent.getTimeStamp());
+                            Log.d(Constants.DEBUG_TAG, "AudioProcessor: " + isSilence + ", " + currentSPL + ", " + pitch + ", " + audioEvent.getTimeStamp());
                         //}
                         Intent i = new Intent(Constants.INTENT_FILTER_AUDIO);
 

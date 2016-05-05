@@ -213,7 +213,7 @@ public class SocialContext {
 
         for (AudioResult audioResult:prev) {
             spl+=audioResult.spl;
-            if (audioResult.pitch > -1.0) {
+            if (audioResult.pitch > -1.0 && audioResult.pitch < 300 && audioResult.pitch > 50) {
                 detectedPitch++;
             }
         }
