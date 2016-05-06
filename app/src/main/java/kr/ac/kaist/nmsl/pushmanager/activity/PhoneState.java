@@ -45,11 +45,6 @@ public class PhoneState {
         if (this.myState != newState) {
             State oldState = this.myState;
             this.myState = newState;
-
-            // call callbacks
-            if (this.phoneStateListener != null) {
-                phoneStateListener.onMyPhoneStateChanged();
-            }
         }
 
         return this.myState;
