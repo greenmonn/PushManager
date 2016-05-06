@@ -2,6 +2,7 @@ package kr.ac.kaist.nmsl.pushmanager.ble;
 
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.le.AdvertiseSettings;
 import android.content.Intent;
 import android.os.IBinder;
 import android.os.RemoteException;
@@ -132,6 +133,7 @@ public class BLEService extends Service implements BeaconConsumer {
 
             beaconTransmitter = new BeaconTransmitter(getApplicationContext(),
                     beaconParser);
+            beaconTransmitter.setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_BALANCED);
         }
     }
 
