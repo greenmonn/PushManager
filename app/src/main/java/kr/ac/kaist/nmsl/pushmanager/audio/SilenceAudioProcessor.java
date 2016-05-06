@@ -2,6 +2,8 @@ package kr.ac.kaist.nmsl.pushmanager.audio;
 
 import android.util.Log;
 
+import java.util.ArrayList;
+
 import be.tarsos.dsp.AudioEvent;
 import be.tarsos.dsp.AudioProcessor;
 import be.tarsos.dsp.SilenceDetector;
@@ -11,6 +13,7 @@ import be.tarsos.dsp.pitch.PitchDetectionHandler;
 import be.tarsos.dsp.pitch.PitchDetectionResult;
 import be.tarsos.dsp.pitch.PitchProcessor;
 import kr.ac.kaist.nmsl.pushmanager.Constants;
+import kr.ac.kaist.nmsl.pushmanager.util.Util;
 
 /**
  * Created by cjpark on 2016-04-28.
@@ -23,6 +26,7 @@ public class SilenceAudioProcessor implements AudioProcessor {
     private LowPassFS lowPass;
     private PitchProcessor pitchProcessor;
     private double pitch;
+    private ArrayList<Boolean> isVoiceList;
 
     private ResultHandler resultHandler;
     private TimeoutHandler timeoutHandler;
@@ -43,6 +47,8 @@ public class SilenceAudioProcessor implements AudioProcessor {
                 Log.d(Constants.DEBUG_TAG, "detected pitch: " + pitch);
             }
         });
+
+        isVoiceList = new ArrayList<>();
     }
 
     @Override
@@ -55,10 +61,12 @@ public class SilenceAudioProcessor implements AudioProcessor {
             boolean isSilence = silenceDetector.isSilence(audioEvent.getFloatBuffer());
             double spl = silenceDetector.currentSPL();
 
+            isVoiceList.add(Util.isVoiceDetected(spl, pitch));
+
             this.resultHandler.handleResult(isSilence, spl, pitch, audioEvent);
             return true;
         } else {
-            this.timeoutHandler.handleTimeout();
+            this.timeoutHandler.handleTimeout(isVoiceList);
             return false;
         }
     }
@@ -73,6 +81,6 @@ public class SilenceAudioProcessor implements AudioProcessor {
     }
 
     public interface TimeoutHandler {
-        public void handleTimeout();
+        public void handleTimeout(ArrayList<Boolean> isVoiceList);
     }
 }

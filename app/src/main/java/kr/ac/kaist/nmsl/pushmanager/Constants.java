@@ -55,15 +55,14 @@ public class Constants {
     public static final String BLUETOOTH_DISABLED = "bt_disabled";
     public static final String BLUETOOTH_LE_BEACON = "ble_beacon";
 
-    public static final double AUDIO_SILENCE_SPL = -70.0;
+    public static final double AUDIO_SILENCE_SPL = -75.0;
     public static final double AUDIO_SAMPLING_DURATION = 0.2;
     public static final int AUDIO_SAMPLING_PERIOD = 1;
 
     public static class CONTEXT_ATTRIBUTE_TYPES {
         public static final int WITH_OTHERS = 0;
-        public static final int PITCH = 1;
-        public static final int SPL = 2;
-        public static final int ACTIVITY = 3;
-        public static final int OTHER_USING_SMARTPHONE = 4;
+        public static final int IS_TALKING = 1;
+        public static final int ACTIVITY = 2;
+        public static final int OTHER_USING_SMARTPHONE = 3;
     }
 }

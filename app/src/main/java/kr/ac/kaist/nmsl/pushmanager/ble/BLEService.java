@@ -86,7 +86,7 @@ public class BLEService extends Service implements BeaconConsumer {
         long[] myNumber = BLEUtil.getMyPhoneNumber(this);
         dataFields.add(myNumber[0]);
         dataFields.add(myNumber[1]);
-        dataFields.add(PhoneState.getInstance().getMyState().getCode());
+        dataFields.add(PhoneState.getInstance().getIsTalking()?0L:1L);
 
         dataFields.add((long)Boolean.compare(PhoneState.getInstance().getIsUsingSmartphone(), true));// to be updated
 

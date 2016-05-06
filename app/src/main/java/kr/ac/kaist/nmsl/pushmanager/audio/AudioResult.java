@@ -1,16 +1,16 @@
 package kr.ac.kaist.nmsl.pushmanager.audio;
 
 import be.tarsos.dsp.AudioEvent;
+import kr.ac.kaist.nmsl.pushmanager.Constants;
+import kr.ac.kaist.nmsl.pushmanager.util.Util;
 
 /**
  * Created by cjpark on 2016-05-01.
  */
 public class AudioResult {
-    public double spl;
-    public double pitch;
+    public boolean isTalking;
     
-    public AudioResult (double spl, double pitch) {
-        this.spl = spl;
-        this.pitch = pitch;
+    public AudioResult (boolean isTalking) {
+        this.isTalking = isTalking;
     }
 }

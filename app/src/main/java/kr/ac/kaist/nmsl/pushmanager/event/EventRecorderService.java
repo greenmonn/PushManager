@@ -50,7 +50,11 @@ public class EventRecorderService extends AccessibilityService {
         Intent i = new Intent(Constants.INTENT_FILTER_USING_SMARTPHONE);
         i.putExtra("event_type", event.getEventType());
         i.putExtra("event_text", getEventText(event));
-        i.putExtra("is_using", !getEventText(event).equals("Lock screen."));
+
+        //TODO: change it after testing
+        //i.putExtra("is_using", !getEventText(event).equals("Lock screen."));
+        i.putExtra("is_using", false);
+
         sendBroadcast(i);
     }
 

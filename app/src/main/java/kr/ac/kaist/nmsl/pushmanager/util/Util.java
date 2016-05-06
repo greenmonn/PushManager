@@ -8,6 +8,7 @@ import android.util.Log;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.util.ArrayList;
 
 import kr.ac.kaist.nmsl.pushmanager.Constants;
 
@@ -36,5 +37,19 @@ public class Util {
 
     public static void refreshDataFile (Context context, File file) {
         context.sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.parse("file://" + file.getAbsolutePath())));
+    }
+
+    public static boolean isVoiceDetected(double spl, double pitch) {
+        return spl > Constants.AUDIO_SILENCE_SPL && pitch > 50 && pitch < 300;
+    }
+
+    public static boolean isTalking(ArrayList<Boolean> isVoiceList) {
+        int count = 0;
+        for (boolean isTalking: isVoiceList) {
+            if (isTalking)
+                count++;
+        }
+
+        return count >= isVoiceList.size()/2;
     }
 }

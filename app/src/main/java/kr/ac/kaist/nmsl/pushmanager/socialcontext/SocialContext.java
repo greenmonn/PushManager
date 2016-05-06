@@ -58,7 +58,7 @@ public class SocialContext {
 
         try {
             data = new Instances(new BufferedReader(new InputStreamReader(file)));
-            data.setClassIndex(5);
+            data.setClassIndex(4);
             String[] options = new String[1];
             options[0] = "-U";
 
@@ -71,7 +71,7 @@ public class SocialContext {
     }
 
     public boolean getIsBreakpoint (HashMap<Integer, Attribute> currentContext) {
-        Instance instance = new DenseInstance(6);
+        Instance instance = new DenseInstance(5);
 
         instance.setDataset(data);
 
@@ -79,11 +79,10 @@ public class SocialContext {
         for (i = 0; i < 5; i++) {
             if (currentContext.containsKey(i)) {
                 switch (i) {
-                    case Constants.CONTEXT_ATTRIBUTE_TYPES.PITCH:
-                    case Constants.CONTEXT_ATTRIBUTE_TYPES.SPL:
                     case Constants.CONTEXT_ATTRIBUTE_TYPES.WITH_OTHERS:
                         instance.setValue(i, currentContext.get(i).doubleValue);
                         break;
+                    case Constants.CONTEXT_ATTRIBUTE_TYPES.IS_TALKING:
                     case Constants.CONTEXT_ATTRIBUTE_TYPES.ACTIVITY:
                     case Constants.CONTEXT_ATTRIBUTE_TYPES.OTHER_USING_SMARTPHONE:
                         instance.setValue(i, currentContext.get(i).stringValue);
@@ -128,11 +127,11 @@ public class SocialContext {
             currentContext.put(attr.type, attr);
         }
 
-        for (Attribute attr: processAudioResults()) {
+        for (Attribute attr: processBeacons()) {
             currentContext.put(attr.type, attr);
         }
 
-        for (Attribute attr: processBeacons()) {
+        for (Attribute attr: processAudioResults()) {
             currentContext.put(attr.type, attr);
         }
 
@@ -178,7 +177,7 @@ public class SocialContext {
             if (detectedActivities.get(0).getType() == DetectedActivity.WALKING ||
                     detectedActivities.get(0).getType() == DetectedActivity.ON_FOOT) {
                 walkingCount++;
-            } else if (detectedActivities.get(0).getType() == DetectedActivity.STILL) {
+            } else {
                 stillCount++;
             }
         }
@@ -206,23 +205,16 @@ public class SocialContext {
             return results;
         }
 
-        int total = prev.size();
-        double spl = 0;
-        int detectedPitch = 0;
-        double detectedPitchThreshold = 0.8;
+        boolean isAnyoneTalking = false;
 
-        for (AudioResult audioResult:prev) {
-            spl+=audioResult.spl;
-            if (audioResult.pitch > -1.0 && audioResult.pitch < 300 && audioResult.pitch > 50) {
-                detectedPitch++;
+        for (AudioResult audioResult: prev) {
+            if (audioResult.isTalking) {
+                isAnyoneTalking = true;
+                break;
             }
         }
 
-        double pitchDetectedPortion = (double)detectedPitch/(double)total;
-        double avgSPL = (double)spl/(double)total;
-
-        results.add(new Attribute(Constants.CONTEXT_ATTRIBUTE_TYPES.PITCH, pitchDetectedPortion, new Date().getTime()));
-        results.add(new Attribute(Constants.CONTEXT_ATTRIBUTE_TYPES.SPL, avgSPL, new Date().getTime()));
+        results.add(new Attribute(Constants.CONTEXT_ATTRIBUTE_TYPES.IS_TALKING, Boolean.valueOf(isAnyoneTalking).toString(), new Date().getTime()));
 
         return results;
     }
@@ -251,8 +243,13 @@ public class SocialContext {
         //}
 
         for (Beacon beacon: prevBeacons) {
-            if (PhoneState.getIsUsingSmartphoneFromBeacon(beacon)) {
+            if (PhoneState.getInstance().getIsUsingSmartphoneFromBeacon(beacon)) {
                 isUsingCount++;
+            }
+
+            //Log.d(Constants.DEBUG_TAG, "talking detected from BLE: " + PhoneState.getInstance().getIsTalkingFromBeacon(beacon));
+            if (PhoneState.getInstance().getIsTalkingFromBeacon(beacon)) {
+                addAudioResult(new AudioResult(PhoneState.getInstance().getIsTalkingFromBeacon(beacon)));
             }
         }
 

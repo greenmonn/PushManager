@@ -458,7 +458,13 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
             }
 
             if (intent.getAction().equals(Constants.INTENT_FILTER_BREAKPOINT)) {
-                Toast.makeText(context, "isBreakpont: " + intent.getBooleanExtra("breakpoint", false), Toast.LENGTH_SHORT).show();
+                String msg = "";
+                msg+= "isBreakpont: " + intent.getBooleanExtra("breakpoint", false) + "\n";
+                msg+= "activity: " + intent.getStringExtra("activity") + "\n";
+                msg+= "is_talking: " + intent.getStringExtra("is_talking") + "\n";
+                msg+= "is_using: " + intent.getStringExtra("is_using") + "\n";
+                msg+= "with_others: " + intent.getDoubleExtra("with_others", 0.0) + "\n";
+                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
             }
         }
     }

@@ -4,6 +4,12 @@ import com.google.android.gms.location.DetectedActivity;
 
 import org.altbeacon.beacon.Beacon;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.Queue;
+
+import kr.ac.kaist.nmsl.pushmanager.util.Util;
+
 /**
  * Created by wns349 on 4/27/2016.
  */
@@ -12,10 +18,12 @@ public class PhoneState {
 
     private State myState = State.Unknown;
     private boolean isUsingSmartphone = false;
+    private boolean isTalking = false;
+    private Queue<Boolean> isVoiceQueue;
     private PhoneStateListener phoneStateListener = null;
 
     private PhoneState() {
-
+        isVoiceQueue = new LinkedList<>();
     }
 
     public synchronized static PhoneState getInstance() {
@@ -27,6 +35,10 @@ public class PhoneState {
 
     public void addListener(PhoneStateListener phoneStateListener) {
         this.phoneStateListener = phoneStateListener;
+    }
+
+    public PhoneStateListener getListener() {
+        return this.phoneStateListener;
     }
 
     public State updateMyState(State newState) {
@@ -43,7 +55,7 @@ public class PhoneState {
         return this.myState;
     }
 
-    public static State getStateFromBeacon(Beacon beacon) {
+    public State getStateFromBeacon(Beacon beacon) {
         if (beacon == null || beacon.getDataFields().size() < 3) {
             return State.Unknown;
         }
@@ -52,7 +64,18 @@ public class PhoneState {
         return State.parse(stateCode);
     }
 
-    public static boolean getIsUsingSmartphoneFromBeacon (Beacon beacon) {
+    public boolean getIsTalkingFromBeacon(Beacon beacon) {
+        if (beacon == null || beacon.getDataFields().size() < 3) {
+            return false;
+        }
+
+        long isTalkingValue = beacon.getDataFields().get(2);
+
+        if (isTalkingValue == 0) return true;
+        else return false;
+    }
+
+    public boolean getIsUsingSmartphoneFromBeacon (Beacon beacon) {
         if (beacon == null || beacon.getDataFields().size() < 4) {
             return false;
         }
@@ -65,6 +88,20 @@ public class PhoneState {
 
     public void updateIsUsingSmartphone (boolean isUsingSmartphone) {
         this.isUsingSmartphone = isUsingSmartphone;
+
+        if (this.phoneStateListener != null) {
+            phoneStateListener.onMyPhoneStateChanged();
+        }
+    }
+
+    public void updateIsTalking (boolean isVoice) {
+        isVoiceQueue.add(isVoice);
+
+        if (isVoiceQueue.size() > 5) {
+            isVoiceQueue.poll();
+        }
+
+        this.isTalking = Util.isTalking(new ArrayList<>(isVoiceQueue));
 
         if (this.phoneStateListener != null) {
             phoneStateListener.onMyPhoneStateChanged();
@@ -115,6 +152,7 @@ public class PhoneState {
         return this.myState;
     }
     public boolean getIsUsingSmartphone () { return this.isUsingSmartphone; }
+    public boolean getIsTalking () { return this.isTalking; }
 
     public enum State {
         Unknown(4),
@@ -152,6 +190,6 @@ public class PhoneState {
     }
 
     public interface PhoneStateListener {
-        public void onMyPhoneStateChanged();
+        void onMyPhoneStateChanged();
     }
 }

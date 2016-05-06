@@ -6,17 +6,15 @@ import android.media.MediaRecorder;
 import android.os.IBinder;
 import android.util.Log;
 
+import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import be.tarsos.dsp.AudioDispatcher;
 import be.tarsos.dsp.AudioEvent;
-import be.tarsos.dsp.filters.HighPass;
-import be.tarsos.dsp.filters.LowPassFS;
-import be.tarsos.dsp.pitch.PitchDetectionHandler;
-import be.tarsos.dsp.pitch.PitchDetectionResult;
-import be.tarsos.dsp.pitch.PitchProcessor;
 import kr.ac.kaist.nmsl.pushmanager.Constants;
+import kr.ac.kaist.nmsl.pushmanager.activity.PhoneState;
+import kr.ac.kaist.nmsl.pushmanager.util.Util;
 
 public class AudioProcessorService extends Service {
     private Timer mTimer;
@@ -37,16 +35,15 @@ public class AudioProcessorService extends Service {
                         //if (!isSilence) {
                             Log.d(Constants.DEBUG_TAG, "AudioProcessor: " + isSilence + ", " + currentSPL + ", " + pitch + ", " + audioEvent.getTimeStamp());
                         //}
-                        Intent i = new Intent(Constants.INTENT_FILTER_AUDIO);
-
-                        i.putExtra("spl", currentSPL);
-                        i.putExtra("pitch", pitch);
-
-                        sendBroadcast(i);
                     }
                 }, new SilenceAudioProcessor.TimeoutHandler() {
                     @Override
-                    public void handleTimeout() {
+                    public void handleTimeout(ArrayList<Boolean> isVoiceList) {
+                        Intent i = new Intent(Constants.INTENT_FILTER_AUDIO);
+                        Log.d(Constants.DEBUG_TAG, "AudioProcessor: voice detected: " + Util.isTalking(isVoiceList));
+                        i.putExtra("is_talking", Util.isTalking(isVoiceList));
+                        sendBroadcast(i);
+
                         dispatcher.stop();
                     }
                 }));

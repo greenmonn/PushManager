@@ -26,6 +26,7 @@ import kr.ac.kaist.nmsl.pushmanager.audio.AudioResult;
 import kr.ac.kaist.nmsl.pushmanager.push.LocalPushThread;
 import kr.ac.kaist.nmsl.pushmanager.socialcontext.SocialContext;
 import kr.ac.kaist.nmsl.pushmanager.util.BLEUtil;
+import kr.ac.kaist.nmsl.pushmanager.util.Util;
 
 public class DeferService extends Service {
     private static final int VIBRATION_DURATION = 500;
@@ -82,6 +83,10 @@ public class DeferService extends Service {
 
                 Intent localIntent = new Intent(Constants.INTENT_FILTER_BREAKPOINT);
                 localIntent.putExtra("breakpoint", isBreakpoint);
+                localIntent.putExtra("activity", socialContextAttributes.containsKey(Constants.CONTEXT_ATTRIBUTE_TYPES.ACTIVITY) ? socialContextAttributes.get(Constants.CONTEXT_ATTRIBUTE_TYPES.ACTIVITY).stringValue:"");
+                localIntent.putExtra("is_talking", socialContextAttributes.containsKey(Constants.CONTEXT_ATTRIBUTE_TYPES.IS_TALKING) ? socialContextAttributes.get(Constants.CONTEXT_ATTRIBUTE_TYPES.IS_TALKING).stringValue: "");
+                localIntent.putExtra("is_using", socialContextAttributes.containsKey(Constants.CONTEXT_ATTRIBUTE_TYPES.OTHER_USING_SMARTPHONE) ? socialContextAttributes.get(Constants.CONTEXT_ATTRIBUTE_TYPES.OTHER_USING_SMARTPHONE).stringValue: "");
+                localIntent.putExtra("with_others", socialContextAttributes.containsKey(Constants.CONTEXT_ATTRIBUTE_TYPES.WITH_OTHERS) ? socialContextAttributes.get(Constants.CONTEXT_ATTRIBUTE_TYPES.WITH_OTHERS).doubleValue : -9999);
                 sendBroadcast(localIntent);
 
                 for (Integer key : socialContextAttributes.keySet()) {
@@ -118,11 +123,8 @@ public class DeferService extends Service {
             case Constants.CONTEXT_ATTRIBUTE_TYPES.WITH_OTHERS:
                 msg += "WITH_OTHERS: " + attribute.doubleValue;
                 break;
-            case Constants.CONTEXT_ATTRIBUTE_TYPES.PITCH:
-                msg += "PITCH: " + attribute.doubleValue;
-                break;
-            case Constants.CONTEXT_ATTRIBUTE_TYPES.SPL:
-                msg += "SPL: " + attribute.doubleValue;
+            case Constants.CONTEXT_ATTRIBUTE_TYPES.IS_TALKING:
+                msg += "IS_TALKING: " + attribute.stringValue;
                 break;
             default:
                 msg += "UNKNOWN CONTEXT";
@@ -203,16 +205,11 @@ public class DeferService extends Service {
                     Log.d(Constants.DEBUG_TAG, "=================== detected beacons ==================");
                     for (Beacon detectedBeacon : detectedBeacons) {
                         Log.d(Constants.DEBUG_TAG, detectedBeacon.getBluetoothAddress() + ", " + detectedBeacon.getDataFields().size() + ", " + detectedBeacon.getExtraDataFields().size() + ", " + String.valueOf(detectedBeacon.getRssi()));
+                        Log.d(Constants.DEBUG_TAG, "talking detected from BLE: " + PhoneState.getInstance().getIsTalkingFromBeacon(detectedBeacon));
 
                         if (detectedBeacon.getDataFields().size() > 0) {
 
                             long blePhoneNumber = BLEUtil.getBLEPhoneNumber(detectedBeacon);
-                            PhoneState.State bleState = PhoneState.getStateFromBeacon(detectedBeacon);
-
-                            // TODO: Use BLE Phone number and status
-                            if (!bleState.name().equals("STILL")) {
-                                Log.d(Constants.DEBUG_TAG, "BLEPhoneNumber: " + blePhoneNumber + "  /  BLEState: " + bleState.name());
-                            }
 
                             //Toast.makeText(context, "[BLE] " + blePhoneNumber + " / His state: "+bleState.name(), Toast.LENGTH_SHORT).show();
                         }
@@ -226,12 +223,10 @@ public class DeferService extends Service {
             }
 
             if (intent.getAction().equals(Constants.INTENT_FILTER_AUDIO)) {
-                double spl = intent.getDoubleExtra("spl", 0.0);
-                double pitch = intent.getDoubleExtra("pitch", 0.0);
+                boolean isTalking = intent.getBooleanExtra("is_talking", false);
 
-                AudioResult audioResult = new AudioResult(spl, pitch);
-
-                socialContext.addAudioResult(audioResult);
+                PhoneState.getInstance().updateIsTalking(isTalking);
+                socialContext.addAudioResult(new AudioResult(isTalking));
             }
         }
     }
