@@ -80,9 +80,8 @@ public class PhoneState {
     }
 
     public void updateIsUsingSmartphone (boolean isUsingSmartphone) {
-        this.isUsingSmartphone = isUsingSmartphone;
-
-        if (this.phoneStateListener != null) {
+        if (this.phoneStateListener != null && this.isUsingSmartphone != isUsingSmartphone) {
+            this.isUsingSmartphone = isUsingSmartphone;
             phoneStateListener.onMyPhoneStateChanged();
         }
     }
@@ -94,9 +93,10 @@ public class PhoneState {
             isVoiceQueue.poll();
         }
 
-        this.isTalking = Util.isTalking(new ArrayList<>(isVoiceQueue));
+        boolean newIsTalking = Util.isTalking(new ArrayList<>(isVoiceQueue));
 
-        if (this.phoneStateListener != null) {
+        if (this.phoneStateListener != null && this.isTalking != newIsTalking) {
+            this.isTalking = newIsTalking;
             phoneStateListener.onMyPhoneStateChanged();
         }
     }
