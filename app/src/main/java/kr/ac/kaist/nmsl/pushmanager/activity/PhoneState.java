@@ -17,6 +17,7 @@ public class PhoneState {
     private static PhoneState instance = null;
 
     private State myState = State.Unknown;
+    private DetectedActivity myDetectedActivity;
     private boolean isUsingSmartphone = false;
     private boolean isTalking = false;
     private Queue<Boolean> isVoiceQueue;
@@ -42,10 +43,7 @@ public class PhoneState {
     }
 
     public State updateMyState(State newState) {
-        if (this.myState != newState) {
-            State oldState = this.myState;
-            this.myState = newState;
-        }
+        this.myState = newState;
 
         return this.myState;
     }

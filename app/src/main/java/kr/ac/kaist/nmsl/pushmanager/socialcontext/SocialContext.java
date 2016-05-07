@@ -166,7 +166,10 @@ public class SocialContext {
         }
 
         if (prev.size() <= 0) {
-            return results;
+            DetectedActivity detectedActivity = new DetectedActivity((int)PhoneState.getInstance().getMyState().getCode(), 100);
+            ArrayList<DetectedActivity> detectedActivityList = new ArrayList<>();
+            detectedActivityList.add(detectedActivity);
+            prev.add(detectedActivityList);
         }
 
         int totalCount = prev.size();
