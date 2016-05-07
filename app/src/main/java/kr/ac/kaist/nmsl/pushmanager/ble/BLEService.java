@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 
 import kr.ac.kaist.nmsl.pushmanager.Constants;
@@ -54,6 +55,14 @@ public class BLEService extends Service implements BeaconConsumer {
         PhoneState.getInstance().addListener(new PhoneState.PhoneStateListener() {
             public void onMyPhoneStateChanged() {
                 //Log.d(Constants.TAG, "Updating beacon state from " + oldState.getCode() + " to " + newState.getCode());
+
+                Log.d(Constants.DEBUG_TAG, "isUsing is about to be expired! " + (new Date().getTime() - PhoneState.getInstance().getLastIsUsingSmartphoneUpdated().getTime()) + ", " + PhoneState.getInstance().getIsUsingSmartphone());
+                if (PhoneState.getInstance().getIsUsingSmartphone() && 5000 < (new Date().getTime() - PhoneState.getInstance().getLastIsUsingSmartphoneUpdated().getTime())) {
+                    PhoneState.getInstance().updateIsUsingSmartphone(false);
+                    Log.d(Constants.DEBUG_TAG, "isUsing expired!");
+                    return;
+                }
+
                 if (beaconTransmitter != null) {
                     //Log.d(Constants.TAG, "Restarting BeaconTransmitter with new state: " + newState.getCode());
                     if (beaconTransmitter.isStarted()) {

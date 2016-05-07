@@ -5,6 +5,7 @@ import com.google.android.gms.location.DetectedActivity;
 import org.altbeacon.beacon.Beacon;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.Queue;
 
@@ -19,12 +20,14 @@ public class PhoneState {
     private State myState = State.Unknown;
     private DetectedActivity myDetectedActivity;
     private boolean isUsingSmartphone = false;
+    private Date lastIsUsingSmartphoneUpdated;
     private boolean isTalking = false;
     private Queue<Boolean> isVoiceQueue;
     private PhoneStateListener phoneStateListener = null;
 
     private PhoneState() {
         isVoiceQueue = new LinkedList<>();
+        lastIsUsingSmartphoneUpdated = new Date();
     }
 
     public synchronized static PhoneState getInstance() {
@@ -82,6 +85,7 @@ public class PhoneState {
     public void updateIsUsingSmartphone (boolean isUsingSmartphone) {
         if (this.phoneStateListener != null && this.isUsingSmartphone != isUsingSmartphone) {
             this.isUsingSmartphone = isUsingSmartphone;
+            lastIsUsingSmartphoneUpdated = new Date();
             phoneStateListener.onMyPhoneStateChanged();
         }
     }
@@ -146,6 +150,7 @@ public class PhoneState {
     }
     public boolean getIsUsingSmartphone () { return this.isUsingSmartphone; }
     public boolean getIsTalking () { return this.isTalking; }
+    public Date getLastIsUsingSmartphoneUpdated () { return lastIsUsingSmartphoneUpdated; }
 
     public enum State {
         Unknown(4),

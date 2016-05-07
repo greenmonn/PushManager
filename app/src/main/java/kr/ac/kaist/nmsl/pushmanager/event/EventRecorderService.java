@@ -28,8 +28,9 @@ public class EventRecorderService extends AccessibilityService {
         Log.d(Constants.DEBUG_TAG, "onServiceConnected");
         AccessibilityServiceInfo info = new AccessibilityServiceInfo();
         info.flags = AccessibilityServiceInfo.DEFAULT;
-        //info.eventTypes = AccessibilityEvent.TYPES_ALL_MASK - AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED;
-        info.eventTypes = AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED;
+        //info.eventTypes = AccessibilityEvent.TYPES_ALL_MASK; //- AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED;
+        info.eventTypes = AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED + AccessibilityEvent.TYPE_VIEW_SCROLLED + AccessibilityEvent.TYPE_VIEW_CLICKED + AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED;
+        //info.eventTypes = AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED;
         info.feedbackType = AccessibilityServiceInfo.FEEDBACK_GENERIC;
         setServiceInfo(info);
     }
@@ -42,7 +43,7 @@ public class EventRecorderService extends AccessibilityService {
                 "%s, %s, %s, %s, %s",
                 event.getEventTime(), AccessibilityEvent.eventTypeToString(event.getEventType()), event.getClassName(), event.getPackageName(),
                 getEventText(event));
-        //Log.d(Constants.DEBUG_TAG, msg);
+        //Log.d(Constants.DEBUG_TAG, "[accessibilityevent] " + msg);
         if (Constants.LOG_ENABLED) {
             Util.writeLogToFile(getApplicationContext(), Constants.LOG_NAME, msg);
         }
@@ -52,8 +53,8 @@ public class EventRecorderService extends AccessibilityService {
         i.putExtra("event_text", getEventText(event));
 
         //TODO: change it after testing
-        //i.putExtra("is_using", !getEventText(event).equals("Lock screen."));
-        i.putExtra("is_using", false);
+        i.putExtra("is_using", !getEventText(event).equals("Lock screen."));
+        //i.putExtra("is_using", false);
 
         sendBroadcast(i);
     }
