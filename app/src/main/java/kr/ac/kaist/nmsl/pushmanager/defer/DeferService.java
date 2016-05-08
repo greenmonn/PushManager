@@ -215,13 +215,11 @@ public class DeferService extends Service {
 
                     socialContext.addBeacon(detectedBeacons);
 
-                    Log.d(Constants.DEBUG_TAG, "=================== detected beacons ==================");
                     for (Beacon detectedBeacon : detectedBeacons) {
-                        Log.d(Constants.DEBUG_TAG, detectedBeacon.getBluetoothAddress() + ", " + detectedBeacon.getDataFields().size() + ", " + detectedBeacon.getExtraDataFields().size() + ", " + String.valueOf(detectedBeacon.getRssi()));
+                        Log.d(Constants.DEBUG_TAG, "detected beacon: " + detectedBeacon.getId1().toString() + ", " + detectedBeacon.getBluetoothAddress() + ", " + detectedBeacon.getDataFields().size() + ", " + detectedBeacon.getExtraDataFields().size() + ", " + String.valueOf(detectedBeacon.getRssi()));
                         Log.d(Constants.DEBUG_TAG, "talking detected from BLE: " + PhoneState.getInstance().getIsTalkingFromBeacon(detectedBeacon));
 
                         if (detectedBeacon.getDataFields().size() > 0) {
-
                             if (PhoneState.getInstance().getIsTalkingFromBeacon(detectedBeacon)) {
                                 socialContext.addAudioResult(new AudioResult(PhoneState.getInstance().getIsTalkingFromBeacon(detectedBeacon), false));
                             }
@@ -232,7 +230,6 @@ public class DeferService extends Service {
 
             if (intent.getAction().equals(Constants.INTENT_FILTER_USING_SMARTPHONE)) {
                 boolean isUsing = intent.getBooleanExtra("is_using", false);
-                //Log.d(Constants.DEBUG_TAG, "isUsing: " + isUsing);
                 PhoneState.getInstance().updateIsUsingSmartphone(isUsing);
             }
 

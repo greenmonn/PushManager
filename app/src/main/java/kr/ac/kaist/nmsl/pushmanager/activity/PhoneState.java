@@ -22,11 +22,11 @@ public class PhoneState {
     private boolean isUsingSmartphone = false;
     private Date lastIsUsingSmartphoneUpdated;
     private boolean isTalking = false;
-    private Queue<Boolean> isVoiceQueue;
+    private Queue<Boolean> isTalkingQueue;
     private PhoneStateListener phoneStateListener = null;
 
     private PhoneState() {
-        isVoiceQueue = new LinkedList<>();
+        isTalkingQueue = new LinkedList<>();
         lastIsUsingSmartphoneUpdated = new Date();
     }
 
@@ -91,17 +91,9 @@ public class PhoneState {
         }
     }
 
-    public void updateIsTalking (boolean isVoice) {
-        isVoiceQueue.add(isVoice);
-
-        if (isVoiceQueue.size() > 5) {
-            isVoiceQueue.poll();
-        }
-
-        boolean newIsTalking = Util.isTalking(new ArrayList<>(isVoiceQueue));
-
-        if (this.phoneStateListener != null && this.isTalking != newIsTalking) {
-            this.isTalking = newIsTalking;
+    public void updateIsTalking (boolean isTalking) {
+        if (this.phoneStateListener != null && this.isTalking != isTalking) {
+            this.isTalking = isTalking;
             phoneStateListener.onMyPhoneStateChanged();
         }
     }

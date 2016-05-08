@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Queue;
+import java.util.Set;
 
 import be.tarsos.dsp.AudioEvent;
 import kr.ac.kaist.nmsl.pushmanager.Constants;
@@ -41,8 +42,10 @@ import weka.core.Instances;
  */
 public class SocialContext {
     private ArrayList<ArrayList<DetectedActivity>> detectedActivitiesList;
-    private ArrayList<ArrayList<Beacon>> detectedBeaconsList;
+    private ArrayList<Beacon> detectedBeaconsList;
     private ArrayList<AudioResult> audioResults;
+    private int beaconNotDetectedCount;
+    private ArrayList<Attribute> lastBeaconResults;
 
     private final Object activityLock = new Object();
     private final Object beaconLock = new Object();
@@ -55,6 +58,9 @@ public class SocialContext {
         detectedActivitiesList = new ArrayList<>();
         detectedBeaconsList = new ArrayList<>();
         audioResults = new ArrayList<>();
+        lastBeaconResults = new ArrayList<>();
+
+        beaconNotDetectedCount = Constants.BLE_BEACON_NOT_DETECTED_THRESHOLD;
 
         try {
             data = new Instances(new BufferedReader(new InputStreamReader(file)));
@@ -146,7 +152,8 @@ public class SocialContext {
 
     public void addBeacon (ArrayList<Beacon> beacons) {
         synchronized (beaconLock) {
-            detectedBeaconsList.add(beacons);
+            for (Beacon beacon: beacons)
+                detectedBeaconsList.add(beacon);
         }
     }
 
@@ -191,7 +198,7 @@ public class SocialContext {
             results.add(new Attribute(Constants.CONTEXT_ATTRIBUTE_TYPES.ACTIVITY, "STILL", new Date().getTime()));
         }
 
-        Log.d(Constants.DEBUG_TAG, "moving count: " + walkingCount + ", still coung: " + stillCount);
+        Log.d(Constants.DEBUG_TAG, "moving count: " + walkingCount + ", still count: " + stillCount);
         return results;
     }
 
@@ -236,7 +243,7 @@ public class SocialContext {
 
     private ArrayList<Attribute> processBeacons () {
         ArrayList<Attribute> results = new ArrayList<>();
-        ArrayList<ArrayList<Beacon>> prev = new ArrayList<>();
+        ArrayList<Beacon> prev = new ArrayList<>();
         int othersCount = 0;
         boolean isOtherUsingSmartphone = true;
         int isUsingCount = 0;
@@ -246,28 +253,36 @@ public class SocialContext {
             detectedBeaconsList.clear();
         }
 
+        Log.d(Constants.DEBUG_TAG, "BEACON@SOCIAL_CONTEXT: " + prev.size() + ", beacon not detected: " +  beaconNotDetectedCount);
+
         if (prev.size() <= 0) {
-            return results;
+            beaconNotDetectedCount++;
+
+            if (beaconNotDetectedCount < Constants.BLE_BEACON_NOT_DETECTED_THRESHOLD) {
+                return lastBeaconResults;
+            } else {
+                return results;
+            }
         }
 
-        ArrayList<Beacon> prevBeacons = prev.get(prev.size()-1);
+        HashSet<String> macAddressSet = new HashSet<>();
 
-        //TODO: might need to set RSSI threshold.
-       //if (prevBeacons.size() <= 0) {
-            othersCount = prevBeacons.size();
-        //}
-
-        for (Beacon beacon: prevBeacons) {
+        for (Beacon beacon: prev) {
+            macAddressSet.add(beacon.getId1().toString());
             if (PhoneState.getInstance().getIsUsingSmartphoneFromBeacon(beacon)) {
                 isUsingCount++;
             }
         }
+
+        othersCount = macAddressSet.size();
 
         isOtherUsingSmartphone = isUsingCount > 0;// && isUsingCount < prevBeacons.size() - 1;
 
         results.add(new Attribute(Constants.CONTEXT_ATTRIBUTE_TYPES.WITH_OTHERS, othersCount, new Date().getTime()));
         results.add(new Attribute(Constants.CONTEXT_ATTRIBUTE_TYPES.OTHER_USING_SMARTPHONE, Boolean.valueOf(isOtherUsingSmartphone).toString(), new Date().getTime()));
 
+        beaconNotDetectedCount = 0;
+        lastBeaconResults = results;
         return results;
     }
 

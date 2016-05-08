@@ -67,6 +67,7 @@ public class Constants {
     }
 
     public static final int SILENCE_DURATION = 7 * 1000;
+    public static final int BLE_BEACON_NOT_DETECTED_THRESHOLD = 3;
 
     public static final long SMARTPHONE_NOT_USING_INTERVAL = 5000L;
 }
