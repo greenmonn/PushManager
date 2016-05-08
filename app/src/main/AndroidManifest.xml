@@ -138,6 +138,14 @@
             android:name=".activity.StepCounterService"
             android:enabled="true"
             android:exported="true"></service>
+        <service
+            android:name=".MainService"
+            android:enabled="true"
+            android:exported="true"></service>
+        <service
+            android:name=".log.LogService"
+            android:enabled="true"
+            android:exported="true"></service>
     </application>
 
 </manifest>

@@ -1,22 +1,14 @@
 package kr.ac.kaist.nmsl.pushmanager;
 
 import android.app.Activity;
-import android.app.PendingIntent;
-import android.app.admin.DevicePolicyManager;
 import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.media.AudioManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.CountDownTimer;
-import android.os.Environment;
-import android.os.Handler;
 import android.provider.Settings;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.View;
@@ -26,49 +18,241 @@ import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.ActivityRecognition;
-
-import java.io.File;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
-import kr.ac.kaist.nmsl.pushmanager.activity.ActivityRecognitionIntentService;
-import kr.ac.kaist.nmsl.pushmanager.audio.AudioProcessorService;
-import kr.ac.kaist.nmsl.pushmanager.ble.BLEService;
-import kr.ac.kaist.nmsl.pushmanager.defer.DeferService;
-import kr.ac.kaist.nmsl.pushmanager.notification.NotificationService;
 import kr.ac.kaist.nmsl.pushmanager.util.BLEUtil;
 import kr.ac.kaist.nmsl.pushmanager.util.ServiceUtil;
-import kr.ac.kaist.nmsl.pushmanager.util.Util;
 
-public class MainActivity extends Activity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+public class MainActivity extends Activity {
+    private static final int ACTIVITY_RESULT_NOTIFICATION_LISTENER_SETTINGS = 142;
+
+    private Context mContext;
+
+    private ServiceState mServiceState = null;
+    private long mRemainingTime;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        this.mContext = this;
+
+        initializeUIComponents();
+
+        // Register broadcast receiver
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(Constants.INTENT_FILTER_BLE);
+        filter.addAction(Constants.INTENT_FILTER_NOTIFICATION);
+        filter.addAction(Constants.INTENT_FILTER_BREAKPOINT);
+        filter.addAction(Constants.INTENT_FILTER_MAINSERVICE);
+
+        LocalBroadcastManager.getInstance(this).registerReceiver(mLocalBroadcastReceiver, filter);
+        //registerReceiver(mMainActivtyBroadcastReceiver, filter);
+    }
+
+    @Override
+    protected void onStop() {
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mLocalBroadcastReceiver);
+
+        super.onStop();
+    }
+
+    private void initializeUIComponents() {
+        showErrorMessage("", false);
+        updateUIComponents();
+
+        // Initialize Button
+        final Button btnControl = (Button) findViewById(R.id.btn_control);
+        btnControl.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (btnControl.getText().equals(getString(R.string.stop))) {
+                    Toast.makeText(mContext, "Stopping service", Toast.LENGTH_SHORT).show();
+                    mContext.stopService(new Intent(mContext, MainService.class));
+
+                    updateUIComponents();
+                } else {
+                    long duration = 0;
+                    try {
+                        EditText edtDuration = (EditText) findViewById(R.id.edt_duration);
+                        duration = Long.parseLong(edtDuration.getText().toString());
+                    } catch (Exception e) {
+                        showErrorMessage("Failed to parse duration. " + e.getMessage(), true);
+                        return;
+                    }
+
+                    int firstPushManagementServiceToExecute = 0;
+                    try {
+                        RadioGroup radioPushManagementMethod = (RadioGroup) findViewById(R.id.group_mode);
+                        firstPushManagementServiceToExecute = radioPushManagementMethod.getCheckedRadioButtonId();
+                    } catch (Exception e) {
+                        showErrorMessage("Failed to parse first push management service to execute. " + e.getMessage(), true);
+                        return;
+                    }
+
+                    Toast.makeText(mContext, "Starting service", Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent(mContext, MainService.class);
+                    intent.putExtra("duration", duration);
+                    intent.putExtra("firstPushManagementServiceToExecute", firstPushManagementServiceToExecute);
+                    mContext.startService(intent);
+
+                    updateUIComponents();
+                }
+            }
+        });
+
+        // Initialize notification setting button
+        final Button btnNotificationSetting = (Button) findViewById(R.id.btn_notification_setting);
+        btnNotificationSetting.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent settingIntent = new Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS");
+                startActivityForResult(settingIntent, ACTIVITY_RESULT_NOTIFICATION_LISTENER_SETTINGS);
+            }
+        });
+
+        // Initialize notification setting button
+        final Button btnAccessibilitySetting = (Button) findViewById(R.id.btn_accessibility_setting);
+        btnAccessibilitySetting.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent settingIntent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
+                startActivity(settingIntent);
+            }
+        });
+
+        final Button btnEnableAdmin = (Button) findViewById(R.id.btn_admin);
+        btnEnableAdmin.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(Settings.ACTION_SECURITY_SETTINGS);
+                startActivity(intent);
+            }
+        });
+
+        final TextView txtOsVersion = (TextView) findViewById(R.id.txt_os_version);
+        txtOsVersion.setText(Build.VERSION.RELEASE + " / BLE: " + BLEUtil.isAdvertisingSupportedDevice(this));
+
+        final RadioGroup groupMode = (RadioGroup) findViewById(R.id.group_mode);
+        groupMode.check(R.id.radio_btn_no_intervention);
+    }
+
+    private void showErrorMessage(String errorMessage, boolean isError) {
+        final TextView txtErrorTextView = (TextView) findViewById(R.id.txt_error_status);
+        txtErrorTextView.setVisibility(isError ? View.VISIBLE : View.INVISIBLE);
+        txtErrorTextView.setText(errorMessage != null ? errorMessage : "");
+    }
+
+    private void updateUIComponents() {
+        final Button btnControl = (Button) findViewById(R.id.btn_control);
+        final TextView txtRemainingTime = (TextView) findViewById(R.id.txt_remaining_time);
+        final TextView txtServiceStatus = (TextView) findViewById(R.id.txt_service_status);
+        final EditText edtDuration = (EditText) findViewById(R.id.edt_duration);
+
+        if (!ServiceUtil.isServiceRunning(this, MainService.class)) {
+            mServiceState = ServiceState.NoService;
+        }
+
+        if (mServiceState == null) {
+            return;
+        }
+
+        switch (mServiceState) {
+            case NoService:
+                btnControl.setText(getString(R.string.start));
+                txtRemainingTime.setText(String.format(getString(R.string.time_zero)));
+                txtServiceStatus.setText(mServiceState.toString());
+                edtDuration.setEnabled(true);
+                break;
+
+            case DeferService:
+            case NoIntervention:
+                btnControl.setText(getString(R.string.stop));
+                String remainingTime = String.format("%02d:%02d",
+                        TimeUnit.MILLISECONDS.toMinutes(mRemainingTime),
+                        TimeUnit.MILLISECONDS.toSeconds(mRemainingTime) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(mRemainingTime))
+                );
+                txtRemainingTime.setText(remainingTime);
+                txtServiceStatus.setText(mServiceState.toString());
+                edtDuration.setEnabled(false);
+                break;
+
+        }
+    }
+
+    private final BroadcastReceiver mLocalBroadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals(Constants.INTENT_FILTER_BLE)) {
+                if (intent.hasExtra(Constants.BLUETOOTH_NOT_FOUND)
+                        && intent.getBooleanExtra(Constants.BLUETOOTH_NOT_FOUND, false)) {
+                    showErrorMessage("Bluetooth not found.", true);
+                }
+
+                if (intent.hasExtra(Constants.BLUETOOTH_DISABLED)
+                        && intent.getBooleanExtra(Constants.BLUETOOTH_DISABLED, false)) {
+                    Intent enableBtIntent = new Intent(
+                            BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                    startActivityForResult(enableBtIntent, Constants.REQUEST_ENABLE_BT);
+                }
+            }
+
+            if (intent.getAction().equals(Constants.INTENT_FILTER_NOTIFICATION)) {
+                /*
+                if (currentServiceState != ServiceState.DeferService && mOldRingerMode != -1) {
+                    // Need to recover
+                    Log.d(Constants.DEBUG_TAG, "Recovering ringer mode to " + mOldRingerMode + " since device is in " + currentServiceState);
+                    mAudioManager.setRingerMode(mOldRingerMode);
+                    mOldRingerMode = -1;
+                }*/
+            }
+
+            if (intent.getAction().equals(Constants.INTENT_FILTER_BREAKPOINT)) {
+                String msg = "";
+                msg += "isBreakpoint: " + intent.getBooleanExtra("breakpoint", false) + "\n";
+                msg += "activity: " + intent.getStringExtra("activity") + "\n";
+                msg += "is_talking: " + intent.getStringExtra("is_talking") + "\n";
+                msg += "is_using: " + intent.getStringExtra("is_using") + "\n";
+                msg += "with_others: " + intent.getDoubleExtra("with_others", 0.0) + "\n";
+                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
+            }
+
+            if (intent.getAction().equals(Constants.INTENT_FILTER_MAINSERVICE)) {
+                if (intent.getExtras().containsKey("alive")) {
+                    updateUIComponents();
+                }
+
+                if (intent.getExtras().containsKey("remainingTime") && intent.getExtras().containsKey("toggleCount") && intent.getExtras().containsKey("totalTime") && intent.getExtras().containsKey("pushManagementMethodId")) {
+                    long remainingTimeForThisManagement = intent.getLongExtra("remainingTime", -1L);
+                    int toggleCount = intent.getIntExtra("toggleCount", -1);
+                    long totalTime = intent.getLongExtra("totalTime", -1L);
+                    int pushManagementMethodId = intent.getIntExtra("pushManagementMethodId", -1);
+                    long serviceToggleTimeToRun = (totalTime / MainService.TOTAL_NUMBER_OF_TOGGLES);
+                    long elapsedTime = serviceToggleTimeToRun * toggleCount + (serviceToggleTimeToRun - remainingTimeForThisManagement);
+
+                    mRemainingTime = totalTime - elapsedTime;
+                    mServiceState = pushManagementMethodId == R.id.radio_btn_defer ? ServiceState.DeferService : ServiceState.NoIntervention;
+                    updateUIComponents();
+                }
+            }
+        }
+    };
+
+    /*
+    implements
+} GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+
     private static final int ACTIVITY_RESULT_NOTIFICATION_LISTENER_SETTINGS = 142;
     public static final String FILE_UTIL_FILE_DATETIME_FORMAT = "yyyyMMdd_HHmmss";
 
     private Context context;
-
-    enum ServiceState {
-        NoService,
-        NoIntervention,
-        DeferService,
-    }
-
-    private ServiceState currentServiceState;
-
-    private CountDownTimer mCountDownTimer;
 
     private DevicePolicyManager mDPM;
 
     private GoogleApiClient mGoogleApiClient;
 
     private MainActivityBroadcastReceiver mBroadcastReceiver;
-
-    private Handler mHandler;
-    private PushManagerRunnable mPushManagerRunnable;
-    private long mPushManagerRunnableInterval;
 
     private AudioManager mAudioManager;
     private int mOldRingerMode = -1;
@@ -114,58 +298,7 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
         // Update UI accordingly
         updateUIComponents();
 
-        // Initialize Button
-        final Button btnControl = (Button) findViewById(R.id.btn_control);
-        btnControl.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                switch (currentServiceState) {
-                    case DeferService:
-                    case NoIntervention:
-                        stopAllServices(true);
-                        break;
-                    case NoService:
-                        // Need to start push manager service
-                        startPushManagerServices();
-                        break;
-                }
-            }
-        });
 
-        // Initialize notification setting button
-        final Button btnNotificationSetting = (Button) findViewById(R.id.btn_notification_setting);
-        btnNotificationSetting.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent settingIntent = new Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS");
-                startActivityForResult(settingIntent, ACTIVITY_RESULT_NOTIFICATION_LISTENER_SETTINGS);
-            }
-        });
-
-        // Initialize notification setting button
-        final Button btnAccessibilitySetting = (Button) findViewById(R.id.btn_accessibility_setting);
-        btnAccessibilitySetting.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent settingIntent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
-                startActivity(settingIntent);
-            }
-        });
-
-        final Button btnEnableAdmin = (Button) findViewById(R.id.btn_admin);
-        btnEnableAdmin.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(Settings.ACTION_SECURITY_SETTINGS);
-                startActivity(intent);
-            }
-        });
-
-        final TextView txtOsVersion = (TextView) findViewById(R.id.txt_os_version);
-        txtOsVersion.setText(Build.VERSION.RELEASE + " / BLE: " + BLEUtil.isAdvertisingSupportedDevice(this));
-
-        final RadioGroup groupMode = (RadioGroup) findViewById(R.id.group_mode);
-        groupMode.check(R.id.radio_btn_no_intervention);
 
         // Check bluetooth
         if (!initializeBluetooth()) {
@@ -448,46 +581,5 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
         }
     }
 
-    public class PushManagerRunnable implements Runnable {
-        private int evenManagementMethodId, oddManagementMethodId;
-        private int toggleCount = 0;
-
-        public PushManagerRunnable(int firstPushManagementMethodId) {
-            if (firstPushManagementMethodId == R.id.radio_btn_no_intervention) {
-                evenManagementMethodId = R.id.radio_btn_no_intervention;
-                oddManagementMethodId = R.id.radio_btn_defer;
-            } else if (firstPushManagementMethodId == R.id.radio_btn_defer) {
-                evenManagementMethodId = R.id.radio_btn_defer;
-                oddManagementMethodId = R.id.radio_btn_no_intervention;
-            }
-        }
-
-        @Override
-        public void run() {
-            if (toggleCount >= 4) {
-                stopAllServices(true);
-                return;
-            }
-
-            stopAllServices(false);
-
-            final SimpleDateFormat fileDateFormat = new SimpleDateFormat(FILE_UTIL_FILE_DATETIME_FORMAT);
-            int pushManagementMethodId = toggleCount % 2 == 0 ? evenManagementMethodId : oddManagementMethodId;
-            switch (pushManagementMethodId) {
-                case R.id.radio_btn_no_intervention:
-                    Constants.LOG_NAME = fileDateFormat.format(new Date()) + "_" + ServiceState.NoIntervention.toString();
-                    Log.d(Constants.DEBUG_TAG, "Starting no intervention service " + toggleCount);
-                    startNoInterventionService();
-                    break;
-                case R.id.radio_btn_defer:
-                    Constants.LOG_NAME = fileDateFormat.format(new Date()) + "_" + ServiceState.DeferService.toString();
-                    Log.d(Constants.DEBUG_TAG, "Starting defer service " + toggleCount);
-                    startDeferService();
-                    break;
-            }
-
-            toggleCount++;
-            mHandler.postDelayed(mPushManagerRunnable, mPushManagerRunnableInterval);
-        }
-    }
+*/
 }

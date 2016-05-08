@@ -50,6 +50,7 @@ public class Constants {
     public static final String INTENT_FILTER_BREAKPOINT = "kr.ac.kaist.nmsl.pushmanager.action.breakpoint";
     public static final String INTENT_FILTER_USING_SMARTPHONE = "kr.ac.kaist.nmsl.pushmanager.action.usingsmartphone";
     public static final String INTENT_FILTER_AUDIO = "kr.ac.kaist.nmsl.pushmanager.action.audio";
+    public static final String INTENT_FILTER_MAINSERVICE = "kr.ac.kaist.nmsl.pushmanager";
 
     public static final String BLUETOOTH_NOT_FOUND = "bt_not_found";
     public static final String BLUETOOTH_DISABLED = "bt_disabled";
