@@ -262,7 +262,7 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
         currentServiceState = ServiceState.DeferService;
         updateUIComponents();
         if (Constants.LOG_ENABLED) {
-            Util.writeLogToFile(context, Constants.LOG_NAME, "==============Defer started===============");
+            Util.writeLogToFile(context, Constants.LOG_NAME, "START", "==============Defer started===============");
         }
         ActivityRecognition.ActivityRecognitionApi.requestActivityUpdates(mGoogleApiClient, Constants.ACTIVITY_REQUEST_DURATION, getActivityDetectionPendingIntent());
 
@@ -276,7 +276,7 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
         updateUIComponents();
         Log.d(Constants.DEBUG_TAG, "NoIntervention started");
         if (Constants.LOG_ENABLED) {
-            Util.writeLogToFile(context, Constants.LOG_NAME, "==============NoIntervention started===============");
+            Util.writeLogToFile(context, Constants.LOG_NAME, "START", "==============NoIntervention started===============");
         }
     }
 
@@ -300,10 +300,10 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 
         if (Constants.LOG_ENABLED) {
             if (stopForGood) {
-                Util.writeLogToFile(context, Constants.LOG_NAME, "==============All ended===============");
+                Util.writeLogToFile(context, Constants.LOG_NAME, "END", "==============All ended===============");
                 Constants.LOG_ENABLED = false;
             } else {
-                Util.writeLogToFile(context, Constants.LOG_NAME, "++++++++++++++Service Switch++++++++++++++");
+                Util.writeLogToFile(context, Constants.LOG_NAME, "SWITCH", "++++++++++++++Service Switch++++++++++++++");
             }
         }
 
@@ -465,7 +465,13 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
                 msg+= "is_using: " + intent.getStringExtra("is_using") + "\n";
                 msg+= "with_others: " + intent.getDoubleExtra("with_others", 0.0) + "\n";
                 Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
-            }
+
+                msg = msg.replace("\n", ", ");
+
+                if (Constants.LOG_ENABLED) {
+                    Util.writeLogToFile(getApplicationContext(), Constants.LOG_NAME, "BREAKPONT", msg);
+        }
+    }
         }
     }
 

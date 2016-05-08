@@ -47,6 +47,9 @@ public class EventRecorderService extends AccessibilityService {
             public void run() {
                 Log.d(Constants.DEBUG_TAG, "isUsing is about to be expired! " + (new Date().getTime() - PhoneState.getInstance().getLastIsUsingSmartphoneUpdated().getTime()) + ", " + PhoneState.getInstance().getIsUsingSmartphone());
                 if (PhoneState.getInstance().getIsUsingSmartphone() && Constants.SMARTPHONE_NOT_USING_INTERVAL < (new Date().getTime() - PhoneState.getInstance().getLastIsUsingSmartphoneUpdated().getTime())) {
+                    if (Constants.LOG_ENABLED) {
+                        Util.writeLogToFile(getApplicationContext(), Constants.LOG_NAME, "SMARTPHONE_USE", "TYPE_WINDOW_STATE_CHANGED, android.widget.FrameLayout, com.android.systemui, Turn into idle mode");
+                    }
                     PhoneState.getInstance().updateIsUsingSmartphone(false);
                     Log.d(Constants.DEBUG_TAG, "isUsing expired!");
                 }
@@ -65,12 +68,12 @@ public class EventRecorderService extends AccessibilityService {
         String msg = String.format(
                 //"onAccessibilityEvent: [type] %s [class] %s [package] %s [time] %s [text] %s",
                 //[time] [type] [class] [package] [text]",
-                "%s, %s, %s, %s, %s",
-                event.getEventTime(), AccessibilityEvent.eventTypeToString(event.getEventType()), event.getClassName(), event.getPackageName(),
+                "%s, %s, %s, %s",
+                AccessibilityEvent.eventTypeToString(event.getEventType()), event.getClassName(), event.getPackageName(),
                 getEventText(event));
         //Log.d(Constants.DEBUG_TAG, "[accessibilityevent] " + msg);
         if (Constants.LOG_ENABLED) {
-            Util.writeLogToFile(getApplicationContext(), Constants.LOG_NAME, msg);
+            Util.writeLogToFile(getApplicationContext(), Constants.LOG_NAME, "SMARTPHONE_USE", msg);
         }
 
         Intent i = new Intent(Constants.INTENT_FILTER_USING_SMARTPHONE);

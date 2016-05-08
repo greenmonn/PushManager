@@ -9,6 +9,7 @@ import android.util.Log;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
+import java.util.Date;
 
 import kr.ac.kaist.nmsl.pushmanager.Constants;
 
@@ -18,13 +19,15 @@ import kr.ac.kaist.nmsl.pushmanager.Constants;
 public class Util {
     private static final String FILE_UTIL_DATA_SEPARATOR = "\n";
 
-    public static void writeLogToFile(Context context, String filename, String log) {
+    public static void writeLogToFile(Context context, String filename, String tag, String log) {
         File uuidDir = new File(Environment.getExternalStoragePublicDirectory(Constants.DIR_NAME).getAbsolutePath());
 
         try {
             File dataFile = new File(uuidDir.getAbsolutePath() + "/" + filename);
             FileOutputStream outputStream = new FileOutputStream(dataFile, true);
 
+            outputStream.write(("["+ tag+ "]" + "\t").getBytes());
+            outputStream.write((Long.toString(new Date().getTime()) + ", ").getBytes());
             outputStream.write((log + FILE_UTIL_DATA_SEPARATOR).getBytes());
 
             outputStream.close();
