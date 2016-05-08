@@ -8,6 +8,7 @@ import android.os.IBinder;
 import android.os.RemoteException;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+import android.widget.Toast;
 
 import org.altbeacon.beacon.Beacon;
 import org.altbeacon.beacon.BeaconConsumer;
@@ -76,6 +77,9 @@ public class BLEService extends Service implements BeaconConsumer {
 
         if (BLEUtil.isAdvertisingSupportedDevice(this)) {
             advertiseBluetoothDevice(false);
+        } else {
+            Log.d(TAG, "Unable to advertise beacon.");
+            Toast.makeText(this, "BLE Advertisement not supported.", Toast.LENGTH_LONG).show();
         }
         scanBluetoothDevices(false);
 
@@ -88,9 +92,9 @@ public class BLEService extends Service implements BeaconConsumer {
         long[] myNumber = BLEUtil.getMyPhoneNumber(this);
         dataFields.add(myNumber[0]);
         dataFields.add(myNumber[1]);
-        dataFields.add(PhoneState.getInstance().getIsTalking()?0L:1L);
+        dataFields.add(PhoneState.getInstance().getIsTalking() ? 0L : 1L);
 
-        dataFields.add((long)Boolean.compare(PhoneState.getInstance().getIsUsingSmartphone(), true));// to be updated
+        dataFields.add((long) Boolean.compare(PhoneState.getInstance().getIsUsingSmartphone(), true));// to be updated
 
         return new Beacon.Builder()
                 .setId1(uuid)
@@ -116,6 +120,9 @@ public class BLEService extends Service implements BeaconConsumer {
     private void startBeacon() {
         if (BLEUtil.isAdvertisingSupportedDevice(this)) {
             advertiseBluetoothDevice(true);
+        } else {
+            Log.d(TAG, "Unable to advertise beacon.");
+            Toast.makeText(this, "BLE Advertisement not supported.", Toast.LENGTH_LONG).show();
         }
 
         scanBluetoothDevices(true);
@@ -135,6 +142,9 @@ public class BLEService extends Service implements BeaconConsumer {
             beaconTransmitter = new BeaconTransmitter(getApplicationContext(),
                     beaconParser);
             beaconTransmitter.setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_BALANCED);
+        } else {
+            Log.d(TAG, "Unable to advertise beacon.");
+            Toast.makeText(this, "BLE Advertisement not supported.", Toast.LENGTH_LONG).show();
         }
     }
 
