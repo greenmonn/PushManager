@@ -82,7 +82,7 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
         setContentView(R.layout.activity_main);
 
         //initialize SCAN folder
-        File dir = new File(Environment.getExternalStoragePublicDirectory(Constants.DIR_NAME).getAbsolutePath());
+        File dir = Environment.getExternalStoragePublicDirectory(Constants.DIR_NAME);
         if (!dir.exists() || !dir.isDirectory()) {
             dir.mkdirs();
         }
@@ -370,6 +370,12 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 
     @Override
     protected void onResume() {
+        //initialize SCAN folder
+        File dir = Environment.getExternalStoragePublicDirectory(Constants.DIR_NAME);
+        if (!dir.exists() || !dir.isDirectory()) {
+            dir.mkdirs();
+        }
+
         IntentFilter filter = new IntentFilter();
         filter.addAction(Constants.INTENT_FILTER_BLE);
         filter.addAction(Constants.INTENT_FILTER_NOTIFICATION);
