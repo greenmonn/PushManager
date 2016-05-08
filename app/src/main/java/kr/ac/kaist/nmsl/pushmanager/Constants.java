@@ -65,4 +65,6 @@ public class Constants {
         public static final int ACTIVITY = 2;
         public static final int OTHER_USING_SMARTPHONE = 3;
     }
+
+    public static final long SMARTPHONE_NOT_USING_INTERVAL = 5000L;
 }

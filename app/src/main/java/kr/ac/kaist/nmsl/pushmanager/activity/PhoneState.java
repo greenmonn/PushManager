@@ -83,9 +83,10 @@ public class PhoneState {
     }
 
     public void updateIsUsingSmartphone (boolean isUsingSmartphone) {
+        lastIsUsingSmartphoneUpdated = new Date();
+
         if (this.phoneStateListener != null && this.isUsingSmartphone != isUsingSmartphone) {
             this.isUsingSmartphone = isUsingSmartphone;
-            lastIsUsingSmartphoneUpdated = new Date();
             phoneStateListener.onMyPhoneStateChanged();
         }
     }

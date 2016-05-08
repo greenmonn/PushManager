@@ -10,10 +10,17 @@ import android.util.Log;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 
+import java.util.Date;
+import java.util.Timer;
+import java.util.TimerTask;
+
 import kr.ac.kaist.nmsl.pushmanager.Constants;
+import kr.ac.kaist.nmsl.pushmanager.activity.PhoneState;
 import kr.ac.kaist.nmsl.pushmanager.util.Util;
 
 public class EventRecorderService extends AccessibilityService {
+    private Timer timer;
+
     public EventRecorderService() {
     }
 
@@ -33,6 +40,24 @@ public class EventRecorderService extends AccessibilityService {
         //info.eventTypes = AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED;
         info.feedbackType = AccessibilityServiceInfo.FEEDBACK_GENERIC;
         setServiceInfo(info);
+
+        timer = new Timer();
+        timer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                Log.d(Constants.DEBUG_TAG, "isUsing is about to be expired! " + (new Date().getTime() - PhoneState.getInstance().getLastIsUsingSmartphoneUpdated().getTime()) + ", " + PhoneState.getInstance().getIsUsingSmartphone());
+                if (PhoneState.getInstance().getIsUsingSmartphone() && Constants.SMARTPHONE_NOT_USING_INTERVAL < (new Date().getTime() - PhoneState.getInstance().getLastIsUsingSmartphoneUpdated().getTime())) {
+                    PhoneState.getInstance().updateIsUsingSmartphone(false);
+                    Log.d(Constants.DEBUG_TAG, "isUsing expired!");
+                }
+            }
+        }, Constants.SMARTPHONE_NOT_USING_INTERVAL, Constants.SMARTPHONE_NOT_USING_INTERVAL);
+    }
+
+    @Override
+    public void onDestroy() {
+        timer.cancel();
+        super.onDestroy();
     }
 
     @Override
