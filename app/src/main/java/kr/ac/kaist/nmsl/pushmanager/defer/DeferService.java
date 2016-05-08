@@ -72,14 +72,16 @@ public class DeferService extends Service {
         mTimer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
-                if (mNotificationCount > 0) {
-                    mNotificationCount = 0;
-                    //mVibrator.vibrate(VIBRATION_DURATION);
-                    Log.i(Constants.DEBUG_TAG, "Vibrated");
-                }
+
 
                 HashMap<Integer, SocialContext.Attribute> socialContextAttributes = socialContext.getCurrentContext();
                 boolean isBreakpoint = socialContext.getIsBreakpoint(socialContextAttributes);
+
+                if (isBreakpoint && mNotificationCount > 0) {
+                    mNotificationCount = 0;
+                    mVibrator.vibrate(VIBRATION_DURATION);
+                    Log.i(Constants.DEBUG_TAG, "Vibrated");
+                }
 
                 Intent localIntent = new Intent(Constants.INTENT_FILTER_BREAKPOINT);
                 localIntent.putExtra("breakpoint", isBreakpoint);
