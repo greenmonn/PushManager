@@ -20,7 +20,7 @@ public class NotificationService extends NotificationListenerService {
 
     @Override
     public void onNotificationPosted(StatusBarNotification sbn) {
-        Log.i(Constants.DEBUG_TAG, "Notification received: " + sbn.getPackageName());
+        Log.i(Constants.TAG, "Notification received: " + sbn.getPackageName());
         if (Constants.LOG_ENABLED) {
             Util.writeLogToFile(getApplicationContext(), Constants.LOG_NAME, "NOTIFICATION", "received, " + sbn.getPackageName());
         }
@@ -33,7 +33,7 @@ public class NotificationService extends NotificationListenerService {
 
     @Override
     public void onNotificationRemoved(StatusBarNotification sbn) {
-        Log.i(Constants.DEBUG_TAG, "Notification removed: " + sbn.getPackageName());
+        Log.i(Constants.TAG, "Notification removed: " + sbn.getPackageName());
         if (Constants.LOG_ENABLED) {
             Util.writeLogToFile(getApplicationContext(), Constants.LOG_NAME, "NOTIFICATION", "removed, " + sbn.getPackageName() );
         }

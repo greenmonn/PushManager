@@ -91,6 +91,7 @@ public class MainService extends Service implements GoogleApiClient.ConnectionCa
         // Mark logging
         if (Constants.LOG_ENABLED) {
             Util.writeLogToFile(this, Constants.LOG_NAME, "END", "==============All ended===============");
+            Constants.LOG_ENABLED = false;
         }
 
         if (mGoogleApiClient != null) {
@@ -141,7 +142,10 @@ public class MainService extends Service implements GoogleApiClient.ConnectionCa
     public void muteDevice() {
         // Get existing state
         AudioManager audioManager = ((AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE));
-        mOldRingerMode = audioManager.getRingerMode();
+        if (mOldRingerMode == -1) {
+            // update only if not updated before
+            mOldRingerMode = audioManager.getRingerMode();
+        }
         audioManager.setRingerMode(AudioManager.RINGER_MODE_SILENT);
     }
 
@@ -272,11 +276,13 @@ public class MainService extends Service implements GoogleApiClient.ConnectionCa
             switch (pushManagementMethodId) {
                 case R.id.radio_btn_no_intervention:
                     Constants.LOG_NAME = fileDateFormat.format(new Date()) + "_" + ServiceState.NoIntervention.toString();
+                    Constants.LOG_ENABLED = true;
                     Log.d(Constants.TAG, "Starting no intervention service " + toggleCount);
                     mainService.startNoInterventionService();
                     break;
                 case R.id.radio_btn_defer:
                     Constants.LOG_NAME = fileDateFormat.format(new Date()) + "_" + ServiceState.DeferService.toString();
+                    Constants.LOG_ENABLED = true;
                     Log.d(Constants.TAG, "Starting defer service " + toggleCount);
                     mainService.startDeferService();
                     break;
