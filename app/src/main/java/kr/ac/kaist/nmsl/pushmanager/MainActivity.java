@@ -8,8 +8,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-
-import android.content.pm.PackageManager;
 import android.media.AudioManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -28,24 +26,21 @@ import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.File;
-
-import java.math.BigInteger;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.TimeUnit;
-
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.ActivityRecognition;
 
+import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.concurrent.TimeUnit;
+
 import kr.ac.kaist.nmsl.pushmanager.activity.ActivityRecognitionIntentService;
-import kr.ac.kaist.nmsl.pushmanager.ble.BLEService;
 import kr.ac.kaist.nmsl.pushmanager.audio.AudioProcessorService;
+import kr.ac.kaist.nmsl.pushmanager.ble.BLEService;
 import kr.ac.kaist.nmsl.pushmanager.defer.DeferService;
 import kr.ac.kaist.nmsl.pushmanager.notification.NotificationService;
+import kr.ac.kaist.nmsl.pushmanager.util.BLEUtil;
 import kr.ac.kaist.nmsl.pushmanager.util.ServiceUtil;
 import kr.ac.kaist.nmsl.pushmanager.util.Util;
 
@@ -83,6 +78,8 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        displayError("", false);
+
         //initialize SCAN folder
         File dir = new File(Environment.getExternalStoragePublicDirectory(Constants.DIR_NAME).getAbsolutePath());
         if (!dir.exists() || !dir.isDirectory()) {
@@ -90,14 +87,7 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
         }
 
         this.context = getApplicationContext();
-        /*mCountDownTimer = new CountDownTimer(0,0) {
-            @Override
-            public void onTick(long millisUntilFinished) {
-            }
-            @Override
-            public void onFinish() {
-            }
-        };*/
+
         mDPM = (DevicePolicyManager) getSystemService(Context.DEVICE_POLICY_SERVICE);
 
         mAudioManager = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
@@ -105,9 +95,6 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
         mBroadcastReceiver = new MainActivityBroadcastReceiver();
 
         // Check if service is already running or not
-        //if(ServiceUtil.isServiceRunning(context, WarningService.class)) {
-        //    currentServiceState = ServiceState.WarningService;
-        //} else if (ServiceUtil.isServiceRunning(context, DeferService.class)){
         if (ServiceUtil.isServiceRunning(context, DeferService.class)) {
             currentServiceState = ServiceState.DeferService;
         } else {
@@ -175,60 +162,41 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
         });
 
         final TextView txtOsVersion = (TextView) findViewById(R.id.txt_os_version);
-        txtOsVersion.setText(Build.VERSION.RELEASE + " / BLE: " + getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE));
+        txtOsVersion.setText(Build.VERSION.RELEASE + " / BLE: " + BLEUtil.isAdvertisingSupportedDevice(this));
 
         final RadioGroup groupMode = (RadioGroup) findViewById(R.id.group_mode);
         groupMode.check(R.id.radio_btn_no_intervention);
-/*
-        AudioDispatcher dispatcher = AudioDispatcherFactory.fromDefaultMicrophone(22050,1024,0);
 
-
-        dispatcher.addAudioProcessor(new PitchProcessor(PitchProcessor.PitchEstimationAlgorithm.FFT_YIN, 22050, 1024, new PitchDetectionHandler() {
-
-            @Override
-            public void handlePitch(PitchDetectionResult pitchDetectionResult,
-                                    AudioEvent audioEvent) {
-                final float pitchInHz = pitchDetectionResult.getPitch();
-                Log.d(Constants.DEBUG_TAG, "pitch: " + pitchInHz);
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        //TextView text = (TextView) findViewById(R.id.textView1);
-                        //text.setText("" + pitchInHz);
-
-                        Toast.makeText(context, "pitch: " + pitchInHz, Toast.LENGTH_SHORT).show();
-                    }
-                });
-
-            }
-        }));
-        new Thread(dispatcher,"Audio Dispatcher").start();
-*/
-        /*static final int SAMPLE_RATE = 8000;
-        int bufferSize = AudioRecord.getMinBufferSize(SAMPLE_RATE, AudioFormat.CHANNEL_IN_MONO,
-                AudioFormat.ENCODING_PCM_16BIT);
-        byte[] buffer = new byte[bufferSize];
-        AudioRecord recorder = new AudioRecord(MediaRecorder.AudioSource.MIC, SAMPLE_RATE, AudioFormat.CHANNEL_IN_MONO,
-                AudioFormat.ENCODING_PCM_16BIT, bufferSize);
-
-
-        AudioProcessor p = new PitchProcessor(PitchProcessor.PitchEstimationAlgorithm.AMDF, SAMPLE_RATE, bufferSize, pdh);
-        TarsosDSPAudioFormat mTarsosFormat = new TarsosDSPAudioFormat(SAMPLE_RATE, 16, 1, true, false);
-
-        int bufferReadResult = recorder.read(buffer, 0, bufferSize);
-        AudioEvent audioEvent = new AudioEvent(mTarsosFormat, bufferReadResult);
-        audioEvent.setFloatBuffer(buffer);
-        p.process(audioEvent);*/
+        // Check bluetooth
+        if (!initializeBluetooth()) {
+            displayError("Failed to initialize Bluetooth", true);
+        }
     }
 
-    /*private void startWarningService(){
-        context.startService(new Intent(context, WarningService.class));
-        currentServiceState = ServiceState.WarningService;
-        updateUIComponents();
-        if (Constants.LOG_ENABLED) {
-            Util.writeLogToFile(context, Constants.LOG_NAME, "==============Warning started===============");
+    private void displayError(String errorMessage, boolean isError) {
+        final TextView txtErrorTextView = (TextView) findViewById(R.id.txt_error_status);
+        txtErrorTextView.setVisibility(isError ? View.VISIBLE : View.INVISIBLE);
+        txtErrorTextView.setText(errorMessage != null ? errorMessage : "");
+    }
+
+    private boolean initializeBluetooth() {
+        BluetoothAdapter btAdapter = BLEUtil.getBluetoothAdapter();
+        if (btAdapter == null) {
+            Intent localIntent = new Intent(Constants.INTENT_FILTER_BLE);
+            localIntent.putExtra(Constants.BLUETOOTH_NOT_FOUND, true);
+            LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(localIntent);
+            return false;
         }
-    }*/
+
+        if (!btAdapter.isEnabled()) {
+            Intent localIntent = new Intent(Constants.INTENT_FILTER_BLE);
+            localIntent.putExtra(Constants.BLUETOOTH_DISABLED, true);
+            LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(localIntent);
+            return false;
+        }
+
+        return true;
+    }
 
     private void startPushManagerServices() {
         // Get duration of the experiment
@@ -237,7 +205,7 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
             duration = Long.parseLong(((EditText) findViewById(R.id.edt_duration)).getText().toString()) * 1000L;
             Toast.makeText(context, "Start managing cellphone use", Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
-            Toast.makeText(context, "Failed to parse duration. " + e.getMessage(), Toast.LENGTH_LONG).show();
+            displayError("Failed to parse duration. " + e.getMessage(), true);
             return;
         }
 
@@ -328,7 +296,7 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 
             @Override
             public void onTick(long millisUntilFinished) {
-                final TextView txtRemainingTime = (TextView) findViewById(R.id.txt_ramaining_time);
+                final TextView txtRemainingTime = (TextView) findViewById(R.id.txt_remaining_time);
                 String remainingTime = String.format("%02d:%02d",
                         TimeUnit.MILLISECONDS.toMinutes(millisUntilFinished),
                         TimeUnit.MILLISECONDS.toSeconds(millisUntilFinished) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millisUntilFinished))
@@ -338,7 +306,7 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 
             @Override
             public void onFinish() {
-                final TextView txtRemainingTime = (TextView) findViewById(R.id.txt_ramaining_time);
+                final TextView txtRemainingTime = (TextView) findViewById(R.id.txt_remaining_time);
                 txtRemainingTime.setText(R.string.time_zero);
             }
         }.start();
@@ -346,7 +314,7 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 
     private void updateUIComponents() {
         final Button btnControl = (Button) findViewById(R.id.btn_control);
-        final TextView txtRemainingTime = (TextView) findViewById(R.id.txt_ramaining_time);
+        final TextView txtRemainingTime = (TextView) findViewById(R.id.txt_remaining_time);
         final TextView txtServiceStatus = (TextView) findViewById(R.id.txt_service_status);
 
         //if(this.currentServiceState == ServiceState.WarningService) {
@@ -442,7 +410,7 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
             if (intent.getAction().equals(Constants.INTENT_FILTER_BLE)) {
                 if (intent.hasExtra(Constants.BLUETOOTH_NOT_FOUND)
                         && intent.getBooleanExtra(Constants.BLUETOOTH_NOT_FOUND, false)) {
-                    Toast.makeText(getApplicationContext(), "Bluetooth not found.", Toast.LENGTH_LONG).show();
+                    displayError("Bluetooth not found.", true);
                 }
 
                 if (intent.hasExtra(Constants.BLUETOOTH_DISABLED)
