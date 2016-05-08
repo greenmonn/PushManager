@@ -471,13 +471,7 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
                 msg+= "is_using: " + intent.getStringExtra("is_using") + "\n";
                 msg+= "with_others: " + intent.getDoubleExtra("with_others", 0.0) + "\n";
                 Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
-
-                msg = msg.replace("\n", ", ");
-
-                if (Constants.LOG_ENABLED) {
-                    Util.writeLogToFile(getApplicationContext(), Constants.LOG_NAME, "BREAKPONT", msg);
-        }
-    }
+           }
         }
     }
 
