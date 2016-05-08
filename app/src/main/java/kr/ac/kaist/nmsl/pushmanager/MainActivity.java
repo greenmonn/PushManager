@@ -9,7 +9,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 
+import android.content.pm.PackageManager;
 import android.media.AudioManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Environment;
@@ -171,6 +173,9 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
                 startActivity(intent);
             }
         });
+
+        final TextView txtOsVersion = (TextView) findViewById(R.id.txt_os_version);
+        txtOsVersion.setText(Build.VERSION.RELEASE + " / BLE: " + getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE));
 
         final RadioGroup groupMode = (RadioGroup) findViewById(R.id.group_mode);
         groupMode.check(R.id.radio_btn_no_intervention);
@@ -459,19 +464,19 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 
             if (intent.getAction().equals(Constants.INTENT_FILTER_BREAKPOINT)) {
                 String msg = "";
-                msg+= "isBreakpont: " + intent.getBooleanExtra("breakpoint", false) + "\n";
-                msg+= "activity: " + intent.getStringExtra("activity") + "\n";
-                msg+= "is_talking: " + intent.getStringExtra("is_talking") + "\n";
-                msg+= "is_using: " + intent.getStringExtra("is_using") + "\n";
-                msg+= "with_others: " + intent.getDoubleExtra("with_others", 0.0) + "\n";
+                msg += "isBreakpont: " + intent.getBooleanExtra("breakpoint", false) + "\n";
+                msg += "activity: " + intent.getStringExtra("activity") + "\n";
+                msg += "is_talking: " + intent.getStringExtra("is_talking") + "\n";
+                msg += "is_using: " + intent.getStringExtra("is_using") + "\n";
+                msg += "with_others: " + intent.getDoubleExtra("with_others", 0.0) + "\n";
                 Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
 
                 msg = msg.replace("\n", ", ");
 
                 if (Constants.LOG_ENABLED) {
                     Util.writeLogToFile(getApplicationContext(), Constants.LOG_NAME, "BREAKPONT", msg);
-        }
-    }
+                }
+            }
         }
     }
 

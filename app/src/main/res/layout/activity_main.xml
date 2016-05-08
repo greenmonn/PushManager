@@ -49,6 +49,15 @@
         android:layout_above="@+id/txt_service_status"
         android:layout_centerHorizontal="true" />
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="@string/hello_world"
+        android:id="@+id/txt_os_version"
+        android:layout_above="@id/txt_ramaining_time"
+        android:layout_centerHorizontal="true" />
+
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
