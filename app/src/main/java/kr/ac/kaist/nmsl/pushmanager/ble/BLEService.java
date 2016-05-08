@@ -165,14 +165,14 @@ public class BLEService extends Service implements BeaconConsumer {
         if (btAdapter == null) {
             Intent localIntent = new Intent(Constants.INTENT_FILTER_BLE);
             localIntent.putExtra(BLUETOOTH_NOT_FOUND, true);
-            LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(localIntent);
+            sendBroadcast(localIntent);
             return false;
         }
 
         if (!btAdapter.isEnabled()) {
             Intent localIntent = new Intent(Constants.INTENT_FILTER_BLE);
             localIntent.putExtra(BLUETOOTH_DISABLED, true);
-            LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(localIntent);
+            sendBroadcast(localIntent);
             return false;
         }
 
