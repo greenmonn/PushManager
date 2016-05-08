@@ -64,7 +64,9 @@ public class DeferService extends Service {
 
         mVibrator = (Vibrator) getApplicationContext().getSystemService(Context.VIBRATOR_SERVICE);
 
-        long getContextDuration = 5000L;
+        long duration = (intent.getLongExtra("duration", 60 * 1000L) * 10 / 25);
+        long getContextDuration = 2000L;
+        Log.d(Constants.DEBUG_TAG, "Defer duration: " + duration);
 
         mTimer = new Timer();
         mTimer.scheduleAtFixedRate(new TimerTask() {
@@ -213,16 +215,14 @@ public class DeferService extends Service {
 
                     socialContext.addBeacon(detectedBeacons);
 
-                    Log.d(Constants.DEBUG_TAG, "=================== detected beacons ==================");
                     for (Beacon detectedBeacon : detectedBeacons) {
-                        Log.d(Constants.DEBUG_TAG, detectedBeacon.getBluetoothAddress() + ", " + detectedBeacon.getDataFields().size() + ", " + detectedBeacon.getExtraDataFields().size() + ", " + String.valueOf(detectedBeacon.getRssi()));
+                        Log.d(Constants.DEBUG_TAG, "detected beacon: " + detectedBeacon.getId1().toString() + ", " + detectedBeacon.getBluetoothAddress() + ", " + detectedBeacon.getDataFields().size() + ", " + detectedBeacon.getExtraDataFields().size() + ", " + String.valueOf(detectedBeacon.getRssi()));
                         Log.d(Constants.DEBUG_TAG, "talking detected from BLE: " + PhoneState.getInstance().getIsTalkingFromBeacon(detectedBeacon));
 
                         if (detectedBeacon.getDataFields().size() > 0) {
-
-                            long blePhoneNumber = BLEUtil.getBLEPhoneNumber(detectedBeacon);
-
-                            //Toast.makeText(context, "[BLE] " + blePhoneNumber + " / His state: "+bleState.name(), Toast.LENGTH_SHORT).show();
+                            if (PhoneState.getInstance().getIsTalkingFromBeacon(detectedBeacon)) {
+                                socialContext.addAudioResult(new AudioResult(PhoneState.getInstance().getIsTalkingFromBeacon(detectedBeacon), false));
+                            }
                         }
                     }
                 }
@@ -230,7 +230,6 @@ public class DeferService extends Service {
 
             if (intent.getAction().equals(Constants.INTENT_FILTER_USING_SMARTPHONE)) {
                 boolean isUsing = intent.getBooleanExtra("is_using", false);
-                //Log.d(Constants.DEBUG_TAG, "isUsing: " + isUsing);
                 PhoneState.getInstance().updateIsUsingSmartphone(isUsing);
             }
 
@@ -238,7 +237,7 @@ public class DeferService extends Service {
                 boolean isTalking = intent.getBooleanExtra("is_talking", false);
 
                 PhoneState.getInstance().updateIsTalking(isTalking);
-                socialContext.addAudioResult(new AudioResult(isTalking));
+                socialContext.addAudioResult(new AudioResult(isTalking, true));
             }
         }
     }

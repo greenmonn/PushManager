@@ -6,6 +6,7 @@ import android.bluetooth.le.AdvertiseSettings;
 import android.content.Intent;
 import android.os.IBinder;
 import android.os.RemoteException;
+import android.provider.Settings;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.widget.Toast;
@@ -87,7 +88,8 @@ public class BLEService extends Service implements BeaconConsumer {
     }
 
     private Beacon createAdvertisingBeacon() {
-        String uuid = UUIDUtil.toUUID(BLEUtil.getMacAddress()).toString();
+        String deviceId = Settings.Secure.getString(this.getContentResolver(), Settings.Secure.ANDROID_ID);
+        String uuid = UUIDUtil.toUUID(deviceId).toString();
         List<Long> dataFields = new ArrayList<Long>();
         long[] myNumber = BLEUtil.getMyPhoneNumber(this);
         dataFields.add(myNumber[0]);
@@ -165,14 +167,14 @@ public class BLEService extends Service implements BeaconConsumer {
         if (btAdapter == null) {
             Intent localIntent = new Intent(Constants.INTENT_FILTER_BLE);
             localIntent.putExtra(BLUETOOTH_NOT_FOUND, true);
-            LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(localIntent);
+            sendBroadcast(localIntent);
             return false;
         }
 
         if (!btAdapter.isEnabled()) {
             Intent localIntent = new Intent(Constants.INTENT_FILTER_BLE);
             localIntent.putExtra(BLUETOOTH_DISABLED, true);
-            LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(localIntent);
+            sendBroadcast(localIntent);
             return false;
         }
 
