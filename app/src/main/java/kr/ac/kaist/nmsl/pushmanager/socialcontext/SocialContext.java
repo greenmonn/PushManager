@@ -196,15 +196,27 @@ public class SocialContext {
     }
 
     private ArrayList<Attribute> processAudioResults () {
+        Date currentTime = new Date();
+        boolean isRemoved = false;
+
         ArrayList<Attribute> results = new ArrayList<>();
 
         ArrayList<AudioResult> prev = new ArrayList<>();
+
         synchronized (audioLock) {
-            prev.addAll(audioResults);
+            for (AudioResult audioResult: audioResults) {
+                if (audioResult.updatedAt.getTime() >= currentTime.getTime() - Constants.SILENCE_DURATION) {
+                    prev.add(audioResult);
+                } else {
+                    isRemoved = true;
+                }
+            }
+
             audioResults.clear();
+            audioResults.addAll(prev);
         }
 
-        if (prev.size() <= 0) {
+        if (!isRemoved || prev.size() <= 0) {
             return results;
         }
 
@@ -248,11 +260,6 @@ public class SocialContext {
         for (Beacon beacon: prevBeacons) {
             if (PhoneState.getInstance().getIsUsingSmartphoneFromBeacon(beacon)) {
                 isUsingCount++;
-            }
-
-            //Log.d(Constants.DEBUG_TAG, "talking detected from BLE: " + PhoneState.getInstance().getIsTalkingFromBeacon(beacon));
-            if (PhoneState.getInstance().getIsTalkingFromBeacon(beacon)) {
-                addAudioResult(new AudioResult(PhoneState.getInstance().getIsTalkingFromBeacon(beacon)));
             }
         }
 

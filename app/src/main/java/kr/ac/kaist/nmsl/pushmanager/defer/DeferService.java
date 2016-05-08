@@ -65,7 +65,7 @@ public class DeferService extends Service {
         mVibrator = (Vibrator) getApplicationContext().getSystemService(Context.VIBRATOR_SERVICE);
 
         long duration = (intent.getLongExtra("duration", 60 * 1000L) * 10 / 25);
-        long getContextDuration = 5000L;
+        long getContextDuration = 2000L;
         Log.d(Constants.DEBUG_TAG, "Defer duration: " + duration);
 
         mTimer = new Timer();
@@ -222,9 +222,9 @@ public class DeferService extends Service {
 
                         if (detectedBeacon.getDataFields().size() > 0) {
 
-                            long blePhoneNumber = BLEUtil.getBLEPhoneNumber(detectedBeacon);
-
-                            //Toast.makeText(context, "[BLE] " + blePhoneNumber + " / His state: "+bleState.name(), Toast.LENGTH_SHORT).show();
+                            if (PhoneState.getInstance().getIsTalkingFromBeacon(detectedBeacon)) {
+                                socialContext.addAudioResult(new AudioResult(PhoneState.getInstance().getIsTalkingFromBeacon(detectedBeacon), false));
+                            }
                         }
                     }
                 }
@@ -240,7 +240,7 @@ public class DeferService extends Service {
                 boolean isTalking = intent.getBooleanExtra("is_talking", false);
 
                 PhoneState.getInstance().updateIsTalking(isTalking);
-                socialContext.addAudioResult(new AudioResult(isTalking));
+                socialContext.addAudioResult(new AudioResult(isTalking, true));
             }
         }
     }

@@ -66,5 +66,7 @@ public class Constants {
         public static final int OTHER_USING_SMARTPHONE = 3;
     }
 
+    public static final int SILENCE_DURATION = 7 * 1000;
+
     public static final long SMARTPHONE_NOT_USING_INTERVAL = 5000L;
 }
