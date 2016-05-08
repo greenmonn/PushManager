@@ -64,9 +64,7 @@ public class DeferService extends Service {
 
         mVibrator = (Vibrator) getApplicationContext().getSystemService(Context.VIBRATOR_SERVICE);
 
-        long duration = (intent.getLongExtra("duration", 60 * 1000L) * 10 / 25);
         long getContextDuration = 5000L;
-        Log.d(Constants.DEBUG_TAG, "Defer duration: " + duration);
 
         mTimer = new Timer();
         mTimer.scheduleAtFixedRate(new TimerTask() {
@@ -85,9 +83,9 @@ public class DeferService extends Service {
 
                 Intent localIntent = new Intent(Constants.INTENT_FILTER_BREAKPOINT);
                 localIntent.putExtra("breakpoint", isBreakpoint);
-                localIntent.putExtra("activity", socialContextAttributes.containsKey(Constants.CONTEXT_ATTRIBUTE_TYPES.ACTIVITY) ? socialContextAttributes.get(Constants.CONTEXT_ATTRIBUTE_TYPES.ACTIVITY).stringValue:"");
-                localIntent.putExtra("is_talking", socialContextAttributes.containsKey(Constants.CONTEXT_ATTRIBUTE_TYPES.IS_TALKING) ? socialContextAttributes.get(Constants.CONTEXT_ATTRIBUTE_TYPES.IS_TALKING).stringValue: "");
-                localIntent.putExtra("is_using", socialContextAttributes.containsKey(Constants.CONTEXT_ATTRIBUTE_TYPES.OTHER_USING_SMARTPHONE) ? socialContextAttributes.get(Constants.CONTEXT_ATTRIBUTE_TYPES.OTHER_USING_SMARTPHONE).stringValue: "");
+                localIntent.putExtra("activity", socialContextAttributes.containsKey(Constants.CONTEXT_ATTRIBUTE_TYPES.ACTIVITY) ? socialContextAttributes.get(Constants.CONTEXT_ATTRIBUTE_TYPES.ACTIVITY).stringValue : "");
+                localIntent.putExtra("is_talking", socialContextAttributes.containsKey(Constants.CONTEXT_ATTRIBUTE_TYPES.IS_TALKING) ? socialContextAttributes.get(Constants.CONTEXT_ATTRIBUTE_TYPES.IS_TALKING).stringValue : "");
+                localIntent.putExtra("is_using", socialContextAttributes.containsKey(Constants.CONTEXT_ATTRIBUTE_TYPES.OTHER_USING_SMARTPHONE) ? socialContextAttributes.get(Constants.CONTEXT_ATTRIBUTE_TYPES.OTHER_USING_SMARTPHONE).stringValue : "");
                 localIntent.putExtra("with_others", socialContextAttributes.containsKey(Constants.CONTEXT_ATTRIBUTE_TYPES.WITH_OTHERS) ? socialContextAttributes.get(Constants.CONTEXT_ATTRIBUTE_TYPES.WITH_OTHERS).doubleValue : -9999);
                 sendBroadcast(localIntent);
 
@@ -97,9 +95,9 @@ public class DeferService extends Service {
 
                 String msg = "";
                 msg += "isBreakpoint: " + isBreakpoint;
-                msg += ", activity: " + (socialContextAttributes.containsKey(Constants.CONTEXT_ATTRIBUTE_TYPES.ACTIVITY) ? socialContextAttributes.get(Constants.CONTEXT_ATTRIBUTE_TYPES.ACTIVITY).stringValue:"");
-                msg += ", is_talking: " + (socialContextAttributes.containsKey(Constants.CONTEXT_ATTRIBUTE_TYPES.IS_TALKING) ? socialContextAttributes.get(Constants.CONTEXT_ATTRIBUTE_TYPES.IS_TALKING).stringValue: "");
-                msg += ", is_using: " +  (socialContextAttributes.containsKey(Constants.CONTEXT_ATTRIBUTE_TYPES.OTHER_USING_SMARTPHONE) ? socialContextAttributes.get(Constants.CONTEXT_ATTRIBUTE_TYPES.OTHER_USING_SMARTPHONE).stringValue: "");
+                msg += ", activity: " + (socialContextAttributes.containsKey(Constants.CONTEXT_ATTRIBUTE_TYPES.ACTIVITY) ? socialContextAttributes.get(Constants.CONTEXT_ATTRIBUTE_TYPES.ACTIVITY).stringValue : "");
+                msg += ", is_talking: " + (socialContextAttributes.containsKey(Constants.CONTEXT_ATTRIBUTE_TYPES.IS_TALKING) ? socialContextAttributes.get(Constants.CONTEXT_ATTRIBUTE_TYPES.IS_TALKING).stringValue : "");
+                msg += ", is_using: " + (socialContextAttributes.containsKey(Constants.CONTEXT_ATTRIBUTE_TYPES.OTHER_USING_SMARTPHONE) ? socialContextAttributes.get(Constants.CONTEXT_ATTRIBUTE_TYPES.OTHER_USING_SMARTPHONE).stringValue : "");
                 msg += ", with_others: " + (socialContextAttributes.containsKey(Constants.CONTEXT_ATTRIBUTE_TYPES.WITH_OTHERS) ? socialContextAttributes.get(Constants.CONTEXT_ATTRIBUTE_TYPES.WITH_OTHERS).doubleValue : -9999);
 
                 if (Constants.LOG_ENABLED) {

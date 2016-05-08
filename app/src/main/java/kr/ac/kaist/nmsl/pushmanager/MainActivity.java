@@ -10,7 +10,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.v4.content.LocalBroadcastManager;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -39,22 +38,35 @@ public class MainActivity extends Activity {
         this.mContext = this;
 
         initializeUIComponents();
-
-        // Register broadcast receiver
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(Constants.INTENT_FILTER_BLE);
-        filter.addAction(Constants.INTENT_FILTER_NOTIFICATION);
-        filter.addAction(Constants.INTENT_FILTER_BREAKPOINT);
-        filter.addAction(Constants.INTENT_FILTER_MAINSERVICE);
-
-        LocalBroadcastManager.getInstance(this).registerReceiver(mLocalBroadcastReceiver, filter);
         //registerReceiver(mMainActivtyBroadcastReceiver, filter);
     }
 
     @Override
-    protected void onStop() {
+    protected void onResume() {
+        // Register broadcast receiver
+        IntentFilter localFilter = new IntentFilter();
+        localFilter.addAction(Constants.INTENT_FILTER_MAINSERVICE);
+        LocalBroadcastManager.getInstance(this).registerReceiver(mLocalBroadcastReceiver, localFilter);
+
+        IntentFilter globalFilter = new IntentFilter();
+        globalFilter.addAction(Constants.INTENT_FILTER_BLE);
+        globalFilter.addAction(Constants.INTENT_FILTER_BREAKPOINT);
+        this.registerReceiver(mGlobalBroadcastReceiver, globalFilter);
+
+        super.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        this.unregisterReceiver(mGlobalBroadcastReceiver);
+
         LocalBroadcastManager.getInstance(this).unregisterReceiver(mLocalBroadcastReceiver);
 
+        super.onPause();
+    }
+
+    @Override
+    protected void onStop() {
         super.onStop();
     }
 
@@ -149,6 +161,7 @@ public class MainActivity extends Activity {
         final TextView txtRemainingTime = (TextView) findViewById(R.id.txt_remaining_time);
         final TextView txtServiceStatus = (TextView) findViewById(R.id.txt_service_status);
         final EditText edtDuration = (EditText) findViewById(R.id.edt_duration);
+        final RadioGroup radioPushManagementMethod = (RadioGroup) findViewById(R.id.group_mode);
 
         if (!ServiceUtil.isServiceRunning(this, MainService.class)) {
             mServiceState = ServiceState.NoService;
@@ -164,6 +177,7 @@ public class MainActivity extends Activity {
                 txtRemainingTime.setText(String.format(getString(R.string.time_zero)));
                 txtServiceStatus.setText(mServiceState.toString());
                 edtDuration.setEnabled(true);
+                radioPushManagementMethod.setEnabled(true);
                 break;
 
             case DeferService:
@@ -176,12 +190,14 @@ public class MainActivity extends Activity {
                 txtRemainingTime.setText(remainingTime);
                 txtServiceStatus.setText(mServiceState.toString());
                 edtDuration.setEnabled(false);
+                radioPushManagementMethod.setEnabled(false);
+                showErrorMessage("", false);
                 break;
 
         }
     }
 
-    private final BroadcastReceiver mLocalBroadcastReceiver = new BroadcastReceiver() {
+    private final BroadcastReceiver mGlobalBroadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(Constants.INTENT_FILTER_BLE)) {
@@ -198,16 +214,6 @@ public class MainActivity extends Activity {
                 }
             }
 
-            if (intent.getAction().equals(Constants.INTENT_FILTER_NOTIFICATION)) {
-                /*
-                if (currentServiceState != ServiceState.DeferService && mOldRingerMode != -1) {
-                    // Need to recover
-                    Log.d(Constants.DEBUG_TAG, "Recovering ringer mode to " + mOldRingerMode + " since device is in " + currentServiceState);
-                    mAudioManager.setRingerMode(mOldRingerMode);
-                    mOldRingerMode = -1;
-                }*/
-            }
-
             if (intent.getAction().equals(Constants.INTENT_FILTER_BREAKPOINT)) {
                 String msg = "";
                 msg += "isBreakpoint: " + intent.getBooleanExtra("breakpoint", false) + "\n";
@@ -217,7 +223,12 @@ public class MainActivity extends Activity {
                 msg += "with_others: " + intent.getDoubleExtra("with_others", 0.0) + "\n";
                 Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
             }
+        }
+    };
 
+    private final BroadcastReceiver mLocalBroadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(Constants.INTENT_FILTER_MAINSERVICE)) {
                 if (intent.getExtras().containsKey("alive")) {
                     updateUIComponents();
@@ -234,6 +245,10 @@ public class MainActivity extends Activity {
                     mRemainingTime = totalTime - elapsedTime;
                     mServiceState = pushManagementMethodId == R.id.radio_btn_defer ? ServiceState.DeferService : ServiceState.NoIntervention;
                     updateUIComponents();
+                }
+
+                if (intent.getExtras().containsKey("error")) {
+                    showErrorMessage(intent.getStringExtra("error"), true);
                 }
             }
         }
@@ -560,14 +575,7 @@ public class MainActivity extends Activity {
                 }
             }
 
-            if (intent.getAction().equals(Constants.INTENT_FILTER_NOTIFICATION)) {
-                if (currentServiceState != ServiceState.DeferService && mOldRingerMode != -1) {
-                    // Need to recover
-                    Log.d(Constants.DEBUG_TAG, "Recovering ringer mode to " + mOldRingerMode + " since device is in " + currentServiceState);
-                    mAudioManager.setRingerMode(mOldRingerMode);
-                    mOldRingerMode = -1;
-                }
-            }
+
 
             if (intent.getAction().equals(Constants.INTENT_FILTER_BREAKPOINT)) {
                 String msg = "";

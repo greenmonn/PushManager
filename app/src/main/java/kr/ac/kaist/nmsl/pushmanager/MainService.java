@@ -1,40 +1,67 @@
 package kr.ac.kaist.nmsl.pushmanager;
 
+import android.app.PendingIntent;
 import android.app.Service;
+import android.app.admin.DevicePolicyManager;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.media.AudioManager;
+import android.os.Bundle;
 import android.os.CountDownTimer;
-import android.os.Handler;
 import android.os.IBinder;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.ActivityRecognition;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import kr.ac.kaist.nmsl.pushmanager.log.LogService;
+import kr.ac.kaist.nmsl.pushmanager.activity.ActivityRecognitionIntentService;
+import kr.ac.kaist.nmsl.pushmanager.audio.AudioProcessorService;
+import kr.ac.kaist.nmsl.pushmanager.ble.BLEService;
+import kr.ac.kaist.nmsl.pushmanager.defer.DeferService;
 import kr.ac.kaist.nmsl.pushmanager.notification.NotificationService;
+import kr.ac.kaist.nmsl.pushmanager.util.Util;
 
 /**
  * Created by wns349 on 5/8/2016.
  */
-public class MainService extends Service {
+public class MainService extends Service implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
     public static final String FILE_UTIL_FILE_DATETIME_FORMAT = "yyyyMMdd_HHmmss";
     public static final int TOTAL_NUMBER_OF_TOGGLES = 4;
-
-    private ServiceState mCurrentServiceState = ServiceState.NoService;
 
     // Service toggle related
     private ServiceToggleTimer mServiceToggleTimer = null;
     private long mTotalDuration = 0L;
 
+    // Mute/Unmute related
+    private int mOldRingerMode = -1;
+
+    // Google Activity Recognition related
+    private GoogleApiClient mGoogleApiClient = null;
+
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         // Start common services that must be run ALL the time
-        Log.d(Constants.TAG, "Starting LogService");
-        startService(new Intent(this, LogService.class));
         Log.d(Constants.TAG, "Starting NotificationService");
         startService(new Intent(this, NotificationService.class));
+        //Google API Client
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addApi(ActivityRecognition.API)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .build();
+        mGoogleApiClient.connect();
 
+        // Register broadcast receiver
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(Constants.INTENT_FILTER_NOTIFICATION);
+        registerReceiver(mMainServiceBroadcastReceiver, filter);
 
         // Start Service Toggle
         mTotalDuration = intent.getLongExtra("duration", 0L) * 1000L;
@@ -53,16 +80,37 @@ public class MainService extends Service {
 
     @Override
     public void onDestroy() {
+        stopService(new Intent(this, DeferService.class));
+        stopService(new Intent(this, BLEService.class));
+        stopService(new Intent(this, AudioProcessorService.class));
+        if (mGoogleApiClient != null && mGoogleApiClient.isConnected()) {
+            Log.d(Constants.TAG, "google activity request removed");
+            ActivityRecognition.ActivityRecognitionApi.removeActivityUpdates(mGoogleApiClient, getActivityDetectionPendingIntent());
+        }
+
+        // Mark logging
+        if (Constants.LOG_ENABLED) {
+            Util.writeLogToFile(this, Constants.LOG_NAME, "END", "==============All ended===============");
+        }
+
+        if (mGoogleApiClient != null) {
+            mGoogleApiClient.disconnect();
+        }
+
         // Stop Service Toggle
         if (mServiceToggleTimer != null) {
             mServiceToggleTimer.cancel();
         }
 
+        // Unregister broadcast receiver
+        unregisterReceiver(mMainServiceBroadcastReceiver);
+
         // Stop common services that must be run ALL the time
         Log.d(Constants.TAG, "Stopping NotificationService");
         stopService(new Intent(this, NotificationService.class));
-        Log.d(Constants.TAG, "Stopping LogService");
-        stopService(new Intent(this, LogService.class));
+
+        // Recover old ringer state
+        unmuteDevice();
 
         // Send broadcast
         Intent serviceDestroyedIntent = new Intent(Constants.INTENT_FILTER_MAINSERVICE);
@@ -72,8 +120,57 @@ public class MainService extends Service {
         super.onDestroy();
     }
 
+    @Override
+    public void onConnected(Bundle bundle) {
+        Log.d(Constants.TAG, "Google Activity Recognition API connected.");
+        if (this.mServiceToggleTimer != null && this.mServiceToggleTimer.getPushManagementMethod() == ServiceState.DeferService) {
+            ActivityRecognition.ActivityRecognitionApi.requestActivityUpdates(mGoogleApiClient, Constants.ACTIVITY_REQUEST_DURATION, getActivityDetectionPendingIntent());
+        }
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+        Log.d(Constants.TAG, "onConnectionSuspended called: " + i);
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+        Log.d(Constants.TAG, "Google Activity Recognition API connect failed. " + connectionResult.getErrorMessage());
+    }
+
+    public void muteDevice() {
+        // Get existing state
+        AudioManager audioManager = ((AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE));
+        mOldRingerMode = audioManager.getRingerMode();
+        audioManager.setRingerMode(AudioManager.RINGER_MODE_SILENT);
+    }
+
+    public void unmuteDevice() {
+        Log.d(Constants.TAG, "Recovering to old ringer mode: " + mOldRingerMode);
+        if (mOldRingerMode != -1) {
+            ((AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE)).setRingerMode(mOldRingerMode);
+            mOldRingerMode = -1;
+        }
+    }
+
     public void stopAllServices(boolean stopForGood) {
-        // TODO: Stop services
+        // Stop services
+        stopService(new Intent(this, DeferService.class));
+        stopService(new Intent(this, BLEService.class));
+        stopService(new Intent(this, AudioProcessorService.class));
+        if (mGoogleApiClient != null && mGoogleApiClient.isConnected()) {
+            Log.d(Constants.TAG, "google activity request removed");
+            ActivityRecognition.ActivityRecognitionApi.removeActivityUpdates(mGoogleApiClient, getActivityDetectionPendingIntent());
+        }
+
+        // Mark logging
+        if (Constants.LOG_ENABLED) {
+            if (stopForGood) {
+                Util.writeLogToFile(this, Constants.LOG_NAME, "END", "==============All ended===============");
+            } else {
+                Util.writeLogToFile(this, Constants.LOG_NAME, "SWITCH", "++++++++++++++Service Switch++++++++++++++");
+            }
+        }
 
         if (stopForGood) {
             // Destroy this service
@@ -82,19 +179,47 @@ public class MainService extends Service {
     }
 
     public void startNoInterventionService() {
+        stopAllServices(false);
 
+        Log.d(Constants.TAG, "NoIntervention started");
+
+        if (Constants.LOG_ENABLED) {
+            Util.writeLogToFile(this, Constants.LOG_NAME, "START", "==============NoIntervention started===============");
+        }
     }
 
     public void startDeferService() {
+        stopAllServices(false);
 
+        Log.d(Constants.TAG, "DeferService started");
+
+        if (Constants.LOG_ENABLED) {
+            Util.writeLogToFile(this, Constants.LOG_NAME, "START", "==============Defer started===============");
+        }
+        muteDevice();
+
+        if (mGoogleApiClient != null && mGoogleApiClient.isConnected()) {
+            ActivityRecognition.ActivityRecognitionApi.requestActivityUpdates(mGoogleApiClient, Constants.ACTIVITY_REQUEST_DURATION, getActivityDetectionPendingIntent());
+        }
+        startService(new Intent(this, AudioProcessorService.class));
+        startService(new Intent(this, BLEService.class));
+        startService(new Intent(this, DeferService.class));
     }
+
+    public PendingIntent getActivityDetectionPendingIntent() {
+        Intent intent = new Intent(this, ActivityRecognitionIntentService.class);
+        PendingIntent pendingIntent = PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        return pendingIntent;
+    }
+
 
     public void runNextServiceToggleTimer(int prevToggleCount, int prevPushManagementMethodId, long duration) {
         if (mServiceToggleTimer != null) {
             mServiceToggleTimer.cancel();
         }
 
-        if (prevToggleCount < TOTAL_NUMBER_OF_TOGGLES) {
+        if (prevToggleCount + 1 < TOTAL_NUMBER_OF_TOGGLES) {
             int newToggleCount = prevToggleCount + 1;
             int newPushManagementMethodId = prevPushManagementMethodId == R.id.radio_btn_defer ? R.id.radio_btn_no_intervention : R.id.radio_btn_defer;
 
@@ -105,6 +230,30 @@ public class MainService extends Service {
             stopAllServices(true);
         }
     }
+
+
+    private void sendError(String message) {
+        Intent intent = new Intent(Constants.INTENT_FILTER_MAINSERVICE);
+        intent.putExtra("error", message);
+
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+
+        // Stop self
+        stopSelf();
+    }
+
+    private final BroadcastReceiver mMainServiceBroadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals(Constants.INTENT_FILTER_NOTIFICATION)) {
+                if (mServiceToggleTimer.getPushManagementMethod() == ServiceState.NoIntervention) {
+                    // Need to recover
+                    Log.d(Constants.DEBUG_TAG, "Recovering ringer mode to " + mOldRingerMode + " since device is in no intervention.");
+                    unmuteDevice();
+                }
+            }
+        }
+    };
 
     private static class ServiceToggleTimer extends CountDownTimer {
         private final MainService mainService;
@@ -132,11 +281,34 @@ public class MainService extends Service {
                     mainService.startDeferService();
                     break;
             }
+
+            if (toggleCount == 0) {
+                // First, so lock the screen
+                try {
+                    ((DevicePolicyManager) this.mainService.getSystemService(Context.DEVICE_POLICY_SERVICE)).lockNow();
+                } catch (Exception e) {
+                    mainService.sendError("Failed to lock the device screen. Check permission. " + e.getMessage());
+                }
+            }
+        }
+
+        public ServiceState getPushManagementMethod() {
+            switch (this.pushManagementMethodId) {
+                case R.id.radio_btn_no_intervention:
+                    return ServiceState.NoIntervention;
+
+                case R.id.radio_btn_defer:
+                    return ServiceState.DeferService;
+            }
+
+            // Should not reach here!
+            return null;
         }
 
         @Override
         public void onFinish() {
             Log.d(Constants.TAG, "onFinish called from " + toggleCount + " / " + pushManagementMethodId);
+
             this.mainService.runNextServiceToggleTimer(toggleCount, pushManagementMethodId, timeToRun);
         }
 
