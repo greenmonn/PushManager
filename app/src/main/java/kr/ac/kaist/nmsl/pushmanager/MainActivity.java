@@ -81,7 +81,7 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
         displayError("", false);
 
         //initialize SCAN folder
-        File dir = new File(Environment.getExternalStoragePublicDirectory(Constants.DIR_NAME).getAbsolutePath());
+        File dir = Environment.getExternalStoragePublicDirectory(Constants.DIR_NAME);
         if (!dir.exists() || !dir.isDirectory()) {
             dir.mkdirs();
         }
@@ -343,6 +343,12 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 
     @Override
     protected void onResume() {
+        //initialize SCAN folder
+        File dir = Environment.getExternalStoragePublicDirectory(Constants.DIR_NAME);
+        if (!dir.exists() || !dir.isDirectory()) {
+            dir.mkdirs();
+        }
+
         IntentFilter filter = new IntentFilter();
         filter.addAction(Constants.INTENT_FILTER_BLE);
         filter.addAction(Constants.INTENT_FILTER_NOTIFICATION);
@@ -432,18 +438,12 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 
             if (intent.getAction().equals(Constants.INTENT_FILTER_BREAKPOINT)) {
                 String msg = "";
-                msg += "isBreakpont: " + intent.getBooleanExtra("breakpoint", false) + "\n";
+                msg += "isBreakpoint: " + intent.getBooleanExtra("breakpoint", false) + "\n";
                 msg += "activity: " + intent.getStringExtra("activity") + "\n";
                 msg += "is_talking: " + intent.getStringExtra("is_talking") + "\n";
                 msg += "is_using: " + intent.getStringExtra("is_using") + "\n";
                 msg += "with_others: " + intent.getDoubleExtra("with_others", 0.0) + "\n";
                 Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
-
-                msg = msg.replace("\n", ", ");
-
-                if (Constants.LOG_ENABLED) {
-                    Util.writeLogToFile(getApplicationContext(), Constants.LOG_NAME, "BREAKPONT", msg);
-                }
             }
         }
     }
