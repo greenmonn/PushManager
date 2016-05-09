@@ -9,6 +9,7 @@ import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.Settings;
 import android.support.v4.content.LocalBroadcastManager;
 import android.view.View;
@@ -18,6 +19,7 @@ import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.File;
 import java.util.concurrent.TimeUnit;
 
 import kr.ac.kaist.nmsl.pushmanager.util.BLEUtil;
@@ -38,11 +40,14 @@ public class MainActivity extends Activity {
 
         this.mContext = this;
 
+        checkAndCreateAppDir();
         initializeUIComponents();
     }
 
     @Override
     protected void onResume() {
+        checkAndCreateAppDir();
+
         // Register broadcast receiver
         IntentFilter localFilter = new IntentFilter();
         localFilter.addAction(Constants.INTENT_FILTER_MAINSERVICE);
@@ -77,6 +82,14 @@ public class MainActivity extends Activity {
         }
 
         return true;
+    }
+
+    private void checkAndCreateAppDir() {
+        File dir = Environment.getExternalStoragePublicDirectory(Constants.DIR_NAME);
+
+        if (!dir.exists() || !dir.isDirectory()) {
+            dir.mkdirs();
+        }
     }
 
     private void initializeUIComponents() {
