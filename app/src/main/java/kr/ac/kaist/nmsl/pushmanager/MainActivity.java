@@ -58,6 +58,8 @@ public class MainActivity extends Activity {
         globalFilter.addAction(Constants.INTENT_FILTER_BREAKPOINT);
         this.registerReceiver(mGlobalBroadcastReceiver, globalFilter);
 
+        updateUIComponents();
+
         super.onResume();
     }
 
