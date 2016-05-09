@@ -36,8 +36,6 @@ public class DeferService extends Service {
     private int mNotificationCount;
     private SocialContext socialContext;
 
-    private LocalPushThread mLocalPushThread = null;
-
     private DeferServiceReceiver mDeferServiceReceiver = null;
 
     public DeferService() {
@@ -54,13 +52,6 @@ public class DeferService extends Service {
         mNotificationCount = 0;
 
         mDeferServiceReceiver = new DeferServiceReceiver();
-
-        // Start push thread
-        if (mLocalPushThread != null) {
-            mLocalPushThread.terminate();
-        }
-        mLocalPushThread = new LocalPushThread(this);
-        mLocalPushThread.start();
 
         mVibrator = (Vibrator) getApplicationContext().getSystemService(Context.VIBRATOR_SERVICE);
 
@@ -151,10 +142,6 @@ public class DeferService extends Service {
     public void onDestroy() {
         unregisterReceiver(mDeferServiceReceiver);
 
-        if (mLocalPushThread != null) {
-            mLocalPushThread.terminate();
-        }
-
         mTimer.cancel();
         Log.i(Constants.DEBUG_TAG, "DeferService destroyed.");
         super.onDestroy();
@@ -182,13 +169,6 @@ public class DeferService extends Service {
                 if (intent.getStringExtra("notification_action").equals("posted")) {
                     Log.i(Constants.DEBUG_TAG, "Notification incremented");
                     mNotificationCount++;
-                    if (mLocalPushThread != null) {
-                        String pack = intent.getStringExtra("notification_package");
-
-                        Log.d(Constants.TAG, "A push notification received from: " + pack);
-                        mLocalPushThread.updateLastPushReceivedAtToNow();
-                    }
-
                 } else if (intent.getStringExtra("notification_action").equals("removed")) {
                     Log.i(Constants.DEBUG_TAG, "Notification decremented");
                     mNotificationCount--;

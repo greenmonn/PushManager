@@ -26,6 +26,7 @@ import kr.ac.kaist.nmsl.pushmanager.audio.AudioProcessorService;
 import kr.ac.kaist.nmsl.pushmanager.ble.BLEService;
 import kr.ac.kaist.nmsl.pushmanager.defer.DeferService;
 import kr.ac.kaist.nmsl.pushmanager.notification.NotificationService;
+import kr.ac.kaist.nmsl.pushmanager.push.LocalPushThread;
 import kr.ac.kaist.nmsl.pushmanager.util.Util;
 
 /**
@@ -44,6 +45,9 @@ public class MainService extends Service implements GoogleApiClient.ConnectionCa
 
     // Google Activity Recognition related
     private GoogleApiClient mGoogleApiClient = null;
+
+    //mLocalPushThread for noIntervention service
+    private LocalPushThread mLocalPushThread = null;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -69,6 +73,13 @@ public class MainService extends Service implements GoogleApiClient.ConnectionCa
 
         mServiceToggleTimer = new ServiceToggleTimer(this, 0, firstPushManagementServiceToExecute, mTotalDuration / TOTAL_NUMBER_OF_TOGGLES);
         mServiceToggleTimer.start();
+
+        // Start push thread
+        if (mLocalPushThread != null) {
+            mLocalPushThread.terminate();
+        }
+        mLocalPushThread = new LocalPushThread(this);
+        mLocalPushThread.start();
 
         return START_STICKY;
     }
@@ -101,6 +112,10 @@ public class MainService extends Service implements GoogleApiClient.ConnectionCa
         // Stop Service Toggle
         if (mServiceToggleTimer != null) {
             mServiceToggleTimer.cancel();
+        }
+
+        if (mLocalPushThread != null) {
+            mLocalPushThread.terminate();
         }
 
         // Unregister broadcast receiver
@@ -254,6 +269,15 @@ public class MainService extends Service implements GoogleApiClient.ConnectionCa
                     // Need to recover
                     Log.d(Constants.DEBUG_TAG, "Recovering ringer mode to " + mOldRingerMode + " since device is in no intervention.");
                     unmuteDevice();
+
+                    if (intent.getStringExtra("notification_action").equals("posted")) {
+                        if (mLocalPushThread != null) {
+                            String pack = intent.getStringExtra("notification_package");
+
+                            Log.d(Constants.TAG, "A push notification received from: " + pack);
+                            mLocalPushThread.updateLastPushReceivedAtToNow();
+                        }
+                    }
                 }
             }
         }
