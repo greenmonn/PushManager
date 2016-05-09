@@ -209,6 +209,7 @@ public class DeferService extends Service {
 
             if (intent.getAction().equals(Constants.INTENT_FILTER_USING_SMARTPHONE)) {
                 boolean isUsing = intent.getBooleanExtra("is_using", false);
+                socialContext.setMeUsingSmartphone(isUsing);
                 PhoneState.getInstance().updateIsUsingSmartphone(isUsing);
             }
 

@@ -46,6 +46,7 @@ public class SocialContext {
     private ArrayList<AudioResult> audioResults;
     private int beaconNotDetectedCount;
     private ArrayList<Attribute> lastBeaconResults;
+    private boolean meUsingSmartphone;
 
     private final Object activityLock = new Object();
     private final Object beaconLock = new Object();
@@ -74,6 +75,10 @@ public class SocialContext {
         } catch (Exception e) {
             Log.e(Constants.DEBUG_TAG, e.getMessage());
         }
+    }
+
+    public void setMeUsingSmartphone(boolean isUsing){
+        this.meUsingSmartphone = isUsing;
     }
 
     public boolean getIsBreakpoint (HashMap<Integer, Attribute> currentContext) {
@@ -276,7 +281,7 @@ public class SocialContext {
 
         othersCount = macAddressSet.size();
 
-        isOtherUsingSmartphone = isUsingCount > 0;// && isUsingCount < prevBeacons.size() - 1;
+        isOtherUsingSmartphone = isUsingCount > 0 || this.meUsingSmartphone ;// && isUsingCount < prevBeacons.size() - 1;
 
         results.add(new Attribute(Constants.CONTEXT_ATTRIBUTE_TYPES.WITH_OTHERS, othersCount, new Date().getTime()));
         results.add(new Attribute(Constants.CONTEXT_ATTRIBUTE_TYPES.OTHER_USING_SMARTPHONE, Boolean.valueOf(isOtherUsingSmartphone).toString(), new Date().getTime()));
