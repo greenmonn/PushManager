@@ -100,10 +100,7 @@ public class MainService extends Service implements GoogleApiClient.ConnectionCa
         }
 
         // Mark logging
-        if (Constants.LOG_ENABLED) {
-            Util.writeLogToFile(this, Constants.LOG_NAME, "END", "==============All ended===============");
-            Constants.LOG_ENABLED = false;
-        }
+        Util.writeLogToFile(this, Constants.LOG_NAME, "END", "==============All ended===============");
 
         if (mGoogleApiClient != null) {
             mGoogleApiClient.disconnect();
@@ -173,6 +170,11 @@ public class MainService extends Service implements GoogleApiClient.ConnectionCa
     }
 
     public void stopAllServices(boolean stopForGood) {
+        // Send out queued push notifications
+        Intent intentSendOutQueuedNotifications = new Intent(Constants.INTENT_FILTER_MAINSERVICE);
+        intentSendOutQueuedNotifications.putExtra("sendOutQueuedNotifications", true);
+        sendBroadcast(intentSendOutQueuedNotifications);
+
         // Stop services
         stopService(new Intent(this, DeferService.class));
         stopService(new Intent(this, BLEService.class));
@@ -182,18 +184,12 @@ public class MainService extends Service implements GoogleApiClient.ConnectionCa
             ActivityRecognition.ActivityRecognitionApi.removeActivityUpdates(mGoogleApiClient, getActivityDetectionPendingIntent());
         }
 
-        // Mark logging
-        if (Constants.LOG_ENABLED) {
-            if (stopForGood) {
-                Util.writeLogToFile(this, Constants.LOG_NAME, "END", "==============All ended===============");
-            } else {
-                Util.writeLogToFile(this, Constants.LOG_NAME, "SWITCH", "++++++++++++++Service Switch++++++++++++++");
-            }
-        }
-
         if (stopForGood) {
             // Destroy this service
+            Util.writeLogToFile(this, Constants.LOG_NAME, "END", "==============All ended===============");
             this.stopSelf();
+        } else {
+            Util.writeLogToFile(this, Constants.LOG_NAME, "SWITCH", "++++++++++++++Service Switch++++++++++++++");
         }
     }
 
@@ -201,20 +197,15 @@ public class MainService extends Service implements GoogleApiClient.ConnectionCa
         stopAllServices(false);
 
         Log.d(Constants.TAG, "NoIntervention started");
-
-        if (Constants.LOG_ENABLED) {
-            Util.writeLogToFile(this, Constants.LOG_NAME, "START", "==============NoIntervention started===============");
-        }
+        Util.writeLogToFile(this, Constants.LOG_NAME, "START", "==============NoIntervention started===============");
     }
 
     public void startDeferService() {
         stopAllServices(false);
 
         Log.d(Constants.TAG, "DeferService started");
+        Util.writeLogToFile(this, Constants.LOG_NAME, "START", "==============Defer started===============");
 
-        if (Constants.LOG_ENABLED) {
-            Util.writeLogToFile(this, Constants.LOG_NAME, "START", "==============Defer started===============");
-        }
         muteDevice();
 
         if (mGoogleApiClient != null && mGoogleApiClient.isConnected()) {
@@ -300,13 +291,11 @@ public class MainService extends Service implements GoogleApiClient.ConnectionCa
             switch (pushManagementMethodId) {
                 case R.id.radio_btn_no_intervention:
                     Constants.LOG_NAME = fileDateFormat.format(new Date()) + "_" + ServiceState.NoIntervention.toString();
-                    Constants.LOG_ENABLED = true;
                     Log.d(Constants.TAG, "Starting no intervention service " + toggleCount);
                     mainService.startNoInterventionService();
                     break;
                 case R.id.radio_btn_defer:
                     Constants.LOG_NAME = fileDateFormat.format(new Date()) + "_" + ServiceState.DeferService.toString();
-                    Constants.LOG_ENABLED = true;
                     Log.d(Constants.TAG, "Starting defer service " + toggleCount);
                     mainService.startDeferService();
                     break;

@@ -63,15 +63,15 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onPause() {
-        this.unregisterReceiver(mGlobalBroadcastReceiver);
-
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(mLocalBroadcastReceiver);
-
         super.onPause();
     }
 
     @Override
     protected void onStop() {
+        this.unregisterReceiver(mGlobalBroadcastReceiver);
+
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mLocalBroadcastReceiver);
+
         super.onStop();
     }
 

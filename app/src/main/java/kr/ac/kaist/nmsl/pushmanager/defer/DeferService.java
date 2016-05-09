@@ -41,6 +41,16 @@ public class DeferService extends Service {
     public DeferService() {
     }
 
+    private void notifyQueuedNotifications(String cause) {
+        if (mNotificationCount > 0) {
+            mVibrator.vibrate(VIBRATION_DURATION);
+            Log.i(Constants.DEBUG_TAG, "Vibrated");
+            Util.writeLogToFile(getApplicationContext(), Constants.LOG_NAME, "BREAKPOINT", "Vibrated. Cause: " + cause + " / Queued Notification Count: " + mNotificationCount);
+
+            mNotificationCount = 0;
+        }
+    }
+
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         try {
@@ -55,23 +65,16 @@ public class DeferService extends Service {
 
         mVibrator = (Vibrator) getApplicationContext().getSystemService(Context.VIBRATOR_SERVICE);
 
-        long duration = (intent.getLongExtra("duration", 60 * 1000L) * 10 / 25);
         long getContextDuration = 2000L;
-        Log.d(Constants.DEBUG_TAG, "Defer duration: " + duration);
 
         mTimer = new Timer();
         mTimer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
-
-
                 HashMap<Integer, SocialContext.Attribute> socialContextAttributes = socialContext.getCurrentContext();
                 boolean isBreakpoint = socialContext.getIsBreakpoint(socialContextAttributes);
-
-                if (isBreakpoint && mNotificationCount > 0) {
-                    mNotificationCount = 0;
-                    mVibrator.vibrate(VIBRATION_DURATION);
-                    Log.i(Constants.DEBUG_TAG, "Vibrated");
+                if (isBreakpoint) {
+                    notifyQueuedNotifications("BREAKPOINT");
                 }
 
                 Intent localIntent = new Intent(Constants.INTENT_FILTER_BREAKPOINT);
@@ -93,10 +96,7 @@ public class DeferService extends Service {
                 msg += ", is_using: " + (socialContextAttributes.containsKey(Constants.CONTEXT_ATTRIBUTE_TYPES.OTHER_USING_SMARTPHONE) ? socialContextAttributes.get(Constants.CONTEXT_ATTRIBUTE_TYPES.OTHER_USING_SMARTPHONE).stringValue : "");
                 msg += ", with_others: " + (socialContextAttributes.containsKey(Constants.CONTEXT_ATTRIBUTE_TYPES.WITH_OTHERS) ? socialContextAttributes.get(Constants.CONTEXT_ATTRIBUTE_TYPES.WITH_OTHERS).doubleValue : -9999);
 
-                if (Constants.LOG_ENABLED) {
-                    Util.writeLogToFile(getApplicationContext(), Constants.LOG_NAME, "BREAKPONT", msg);
-                }
-
+                Util.writeLogToFile(getApplicationContext(), Constants.LOG_NAME, "BREAKPOINT", msg);
             }
 
 
@@ -108,6 +108,7 @@ public class DeferService extends Service {
         filter.addAction(Constants.INTENT_FILTER_BLE);
         filter.addAction(Constants.INTENT_FILTER_USING_SMARTPHONE);
         filter.addAction(Constants.INTENT_FILTER_AUDIO);
+        filter.addAction(Constants.INTENT_FILTER_MAINSERVICE);
         registerReceiver(mDeferServiceReceiver, filter);
 
         Log.i(Constants.DEBUG_TAG, "DeferService started.");
@@ -169,9 +170,11 @@ public class DeferService extends Service {
                 if (intent.getStringExtra("notification_action").equals("posted")) {
                     Log.i(Constants.DEBUG_TAG, "Notification incremented");
                     mNotificationCount++;
+                    Util.writeLogToFile(getApplicationContext(), Constants.LOG_NAME, "NOTIFICATION", "Notification count incremented to " + mNotificationCount);
                 } else if (intent.getStringExtra("notification_action").equals("removed")) {
                     Log.i(Constants.DEBUG_TAG, "Notification decremented");
                     mNotificationCount--;
+                    Util.writeLogToFile(getApplicationContext(), Constants.LOG_NAME, "NOTIFICATION", "Notification count decremented to " + mNotificationCount);
                 }
             }
 
@@ -218,6 +221,12 @@ public class DeferService extends Service {
 
                 PhoneState.getInstance().updateIsTalking(isTalking);
                 socialContext.addAudioResult(new AudioResult(isTalking, true));
+            }
+
+            if (intent.getAction().equals(Constants.INTENT_FILTER_MAINSERVICE)) {
+                if (intent.getBooleanExtra("sendOutQueuedNotifications", false)) {
+                    notifyQueuedNotifications("MODE_CHANGE");
+                }
             }
         }
     }
