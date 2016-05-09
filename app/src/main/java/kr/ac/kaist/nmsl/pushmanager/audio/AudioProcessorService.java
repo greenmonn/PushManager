@@ -28,7 +28,7 @@ public class AudioProcessorService extends Service {
         mTimer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
-                final AudioDispatcher dispatcher = SilenceAudioDispatcherFactory.fromMicrophone(MediaRecorder.AudioSource.VOICE_RECOGNITION, 22050,1024,0);
+                final AudioDispatcher dispatcher = SilenceAudioDispatcherFactory.fromMicrophone(MediaRecorder.AudioSource.MIC, 22050,1024,0);
                 dispatcher.addAudioProcessor(new SilenceAudioProcessor(Constants.AUDIO_SILENCE_SPL, Constants.AUDIO_SAMPLING_DURATION, new SilenceAudioProcessor.ResultHandler() {
                     @Override
                     public void handleResult(boolean isSilence, double currentSPL, double pitch, AudioEvent audioEvent) {

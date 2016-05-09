@@ -48,11 +48,12 @@ public class Util {
 
     public static boolean isTalking(ArrayList<Boolean> isVoiceList) {
         int count = 0;
-        for (boolean isTalking: isVoiceList) {
-            if (isTalking)
+        for (boolean isVoice: isVoiceList) {
+            if (isVoice)
                 count++;
         }
 
-        return count >= isVoiceList.size()/2;
+        //return count >= isVoiceList.size()/2;
+        return count >= Constants.IS_TALKING_SAMPLE_COUNT;
     }
 }
