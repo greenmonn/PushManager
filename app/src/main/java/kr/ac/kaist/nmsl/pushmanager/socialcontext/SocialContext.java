@@ -41,6 +41,8 @@ import weka.core.Instances;
  * Created by cjpark on 2016-05-01.
  */
 public class SocialContext {
+    private static SocialContext instance = null;
+
     private ArrayList<ArrayList<DetectedActivity>> detectedActivitiesList;
     private ArrayList<Beacon> detectedBeaconsList;
     private ArrayList<AudioResult> audioResults;
@@ -55,7 +57,20 @@ public class SocialContext {
     private Instances data;
     private J48 tree;
 
-    public SocialContext (InputStream file) {
+    public synchronized static SocialContext getInstance(){
+        if(instance == null){
+            instance = new SocialContext();
+        }
+
+        return instance;
+    }
+
+    private SocialContext(){
+
+    }
+
+    public void initialize(InputStream file) {
+
         detectedActivitiesList = new ArrayList<>();
         detectedBeaconsList = new ArrayList<>();
         audioResults = new ArrayList<>();

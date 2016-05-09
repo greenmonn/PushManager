@@ -16,6 +16,7 @@ import java.util.TimerTask;
 
 import kr.ac.kaist.nmsl.pushmanager.Constants;
 import kr.ac.kaist.nmsl.pushmanager.activity.PhoneState;
+import kr.ac.kaist.nmsl.pushmanager.socialcontext.SocialContext;
 import kr.ac.kaist.nmsl.pushmanager.util.Util;
 
 public class EventRecorderService extends AccessibilityService {
@@ -49,7 +50,7 @@ public class EventRecorderService extends AccessibilityService {
                 if (PhoneState.getInstance().getIsUsingSmartphone() && Constants.SMARTPHONE_NOT_USING_INTERVAL < (new Date().getTime() - PhoneState.getInstance().getLastIsUsingSmartphoneUpdated().getTime())) {
 
                     Util.writeLogToFile(getApplicationContext(), Constants.LOG_NAME, "SMARTPHONE_USE", "TYPE_WINDOW_STATE_CHANGED, android.widget.FrameLayout, com.android.systemui, Turn into idle mode");
-
+                    SocialContext.getInstance().setMeUsingSmartphone(false);
                     PhoneState.getInstance().updateIsUsingSmartphone(false);
                     Log.d(Constants.DEBUG_TAG, "isUsing expired!");
                 }

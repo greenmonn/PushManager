@@ -50,7 +50,8 @@ public class DeferService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         try {
-            socialContext = new SocialContext(getAssets().open(Constants.LABALED_DATA_FILE_NAME));
+            socialContext = SocialContext.getInstance();
+            socialContext.initialize(getAssets().open(Constants.LABALED_DATA_FILE_NAME));
         } catch (Exception e) {
             socialContext = null;
         }
