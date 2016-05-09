@@ -1,7 +1,6 @@
 package kr.ac.kaist.nmsl.pushmanager.defer;
 
 import android.app.Service;
-import android.app.admin.DevicePolicyManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -168,7 +167,6 @@ public class DeferService extends Service {
                 if (intent.getStringExtra("notification_action").equals("posted")) {
                     Log.i(Constants.DEBUG_TAG, "Notification incremented");
                     mNotificationCount++;
-                    ((DevicePolicyManager) getSystemService(Context.DEVICE_POLICY_SERVICE)).lockNow();
                     Util.writeLogToFile(getApplicationContext(), Constants.LOG_NAME, "NOTIFICATION", "Notification count incremented to " + mNotificationCount);
                 } else if (intent.getStringExtra("notification_action").equals("removed")) {
                     Log.i(Constants.DEBUG_TAG, "Notification decremented");
