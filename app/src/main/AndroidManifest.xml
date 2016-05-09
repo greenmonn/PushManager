@@ -12,29 +12,8 @@
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
-    <uses-permission android:name="android.permission.READ_SMS" />
 
-    <!-- [START] Parse-related -->
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <uses-permission android:name="android.permission.VIBRATE" />
-    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
-    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
-
-    <!--
-      IMPORTANT: Change "com.parse.starter.permission.C2D_MESSAGE" in the lines below
-      to match your app's package name + ".permission.C2D_MESSAGE".
-    -->
-    <permission
-        android:name="kr.ac.kaist.nmsl.pushmanager.permission.C2D_MESSAGE"
-        android:protectionLevel="signature" />
-
-    <uses-permission android:name="kr.ac.kaist.nmsl.pushmanager.permission.C2D_MESSAGE" />
-
-    <!-- [END] Parse-related -->
     <application
-        android:name=".MyApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -57,10 +36,6 @@
                 <action android:name="android.intent.action.MEDIA_BUTTON" />
             </intent-filter>
         </service>
-        <service
-            android:name=".warning.WarningService"
-            android:enabled="true"
-            android:exported="true" />
         <service
             android:name=".notification.NotificationService"
             android:enabled="true"
@@ -99,30 +74,6 @@
             </intent-filter>
         </receiver>
 
-        <!-- [START] Parse-related -->
-        <service android:name="com.parse.PushService" />
-
-        <receiver
-            android:name=".push.MyParsePushBroadcastReceiver"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.parse.push.intent.RECEIVE" />
-                <action android:name="com.parse.push.intent.DELETE" />
-                <action android:name="com.parse.push.intent.OPEN" />
-            </intent-filter>
-        </receiver>
-        <receiver
-            android:name="com.parse.GcmBroadcastReceiver"
-            android:permission="com.google.android.c2dm.permission.SEND">
-            <intent-filter>
-                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
-                <action android:name="com.google.android.c2dm.intent.REGISTRATION" />
-
-                <!-- IMPORTANT: Change "com.parse.starter" to match your app's package name. -->
-                <category android:name="kr.ac.kaist.nmsl.pushmanager" />
-            </intent-filter>
-        </receiver>
-        <!-- [END] Parse-related -->
         <service
             android:name=".activity.ActivityRecognitionIntentService"
             android:exported="false" />
@@ -135,13 +86,9 @@
             android:enabled="true"
             android:exported="true" />
         <service
-            android:name=".activity.StepCounterService"
-            android:enabled="true"
-            android:exported="true"></service>
-        <service
             android:name=".MainService"
             android:enabled="true"
-            android:exported="true"></service>
+            android:exported="true"/>
     </application>
 
 </manifest>
