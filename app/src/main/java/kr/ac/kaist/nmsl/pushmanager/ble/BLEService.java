@@ -31,6 +31,7 @@ import kr.ac.kaist.nmsl.pushmanager.Constants;
 import kr.ac.kaist.nmsl.pushmanager.activity.PhoneState;
 import kr.ac.kaist.nmsl.pushmanager.util.BLEUtil;
 import kr.ac.kaist.nmsl.pushmanager.util.UUIDUtil;
+import kr.ac.kaist.nmsl.pushmanager.util.Util;
 
 public class BLEService extends Service implements BeaconConsumer {
     public static final String BLUETOOTH_NOT_FOUND = "bt_not_found";
@@ -124,6 +125,7 @@ public class BLEService extends Service implements BeaconConsumer {
             advertiseBluetoothDevice(true);
         } else {
             Log.d(TAG, "Unable to advertise beacon.");
+            Util.writeLogToFile(getApplicationContext(), Constants.LOG_NAME, "BLE", "Unable to advertise beacon. Unsupported device.");
             Toast.makeText(this, "BLE Advertisement not supported.", Toast.LENGTH_LONG).show();
         }
 
@@ -146,6 +148,7 @@ public class BLEService extends Service implements BeaconConsumer {
             beaconTransmitter.setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_BALANCED);
         } else {
             Log.d(TAG, "Unable to advertise beacon.");
+            Util.writeLogToFile(getApplicationContext(), Constants.LOG_NAME, "BLE", "Unable to advertise beacon. Unsupported device.");
             Toast.makeText(this, "BLE Advertisement not supported.", Toast.LENGTH_LONG).show();
         }
     }

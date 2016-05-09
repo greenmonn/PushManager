@@ -5,27 +5,23 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.media.AudioManager;
 import android.os.IBinder;
 import android.os.Vibrator;
-import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
-import android.widget.Switch;
-import android.widget.Toast;
 
 import com.google.android.gms.location.DetectedActivity;
 
 import org.altbeacon.beacon.Beacon;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import kr.ac.kaist.nmsl.pushmanager.Constants;
-import kr.ac.kaist.nmsl.pushmanager.MainActivity;
 import kr.ac.kaist.nmsl.pushmanager.activity.PhoneState;
 import kr.ac.kaist.nmsl.pushmanager.audio.AudioResult;
-import kr.ac.kaist.nmsl.pushmanager.push.LocalPushThread;
 import kr.ac.kaist.nmsl.pushmanager.socialcontext.SocialContext;
-import kr.ac.kaist.nmsl.pushmanager.util.BLEUtil;
 import kr.ac.kaist.nmsl.pushmanager.util.Util;
 
 public class DeferService extends Service {

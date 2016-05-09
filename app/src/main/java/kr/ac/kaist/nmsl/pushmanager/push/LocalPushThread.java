@@ -12,6 +12,7 @@ import android.util.Log;
 import kr.ac.kaist.nmsl.pushmanager.Constants;
 import kr.ac.kaist.nmsl.pushmanager.MainActivity;
 import kr.ac.kaist.nmsl.pushmanager.R;
+import kr.ac.kaist.nmsl.pushmanager.util.Util;
 
 /**
  * Created by wns349 on 5/3/2016.
@@ -49,6 +50,7 @@ public class LocalPushThread extends Thread {
             maxMillisecondsWithoutPush = randomMilliseconds();
 
             Log.d(Constants.DEBUG_TAG, "Your new waiting time is: " + maxMillisecondsWithoutPush);
+            Util.writeLogToFile(this.context, Constants.LOG_NAME, "LOCAL_PUSH", "New waiting time: " + maxMillisecondsWithoutPush + " ms");
         }
     }
 
@@ -75,6 +77,7 @@ public class LocalPushThread extends Thread {
         notificationManager.notify(1, b.build());
 
         Log.d(Constants.TAG, "Local push sent");
+        Util.writeLogToFile(this.context, Constants.LOG_NAME, "LOCAL_PUSH", "Local push sent. ");
 
         updateLastPushReceivedAtToNow();
     }
@@ -91,7 +94,7 @@ public class LocalPushThread extends Thread {
                 }
             } finally {
                 try {
-                    Thread.sleep(10);
+                    Thread.sleep(100);
                 } catch (InterruptedException e) {
                     Log.e(Constants.TAG, e.getMessage());
                 }

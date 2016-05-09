@@ -47,9 +47,9 @@ public class EventRecorderService extends AccessibilityService {
             public void run() {
                 Log.d(Constants.DEBUG_TAG, "isUsing is about to be expired! " + (new Date().getTime() - PhoneState.getInstance().getLastIsUsingSmartphoneUpdated().getTime()) + ", " + PhoneState.getInstance().getIsUsingSmartphone());
                 if (PhoneState.getInstance().getIsUsingSmartphone() && Constants.SMARTPHONE_NOT_USING_INTERVAL < (new Date().getTime() - PhoneState.getInstance().getLastIsUsingSmartphoneUpdated().getTime())) {
-                    if (Constants.LOG_ENABLED) {
-                        Util.writeLogToFile(getApplicationContext(), Constants.LOG_NAME, "SMARTPHONE_USE", "TYPE_WINDOW_STATE_CHANGED, android.widget.FrameLayout, com.android.systemui, Turn into idle mode");
-                    }
+
+                    Util.writeLogToFile(getApplicationContext(), Constants.LOG_NAME, "SMARTPHONE_USE", "TYPE_WINDOW_STATE_CHANGED, android.widget.FrameLayout, com.android.systemui, Turn into idle mode");
+
                     PhoneState.getInstance().updateIsUsingSmartphone(false);
                     Log.d(Constants.DEBUG_TAG, "isUsing expired!");
                 }
@@ -72,9 +72,8 @@ public class EventRecorderService extends AccessibilityService {
                 AccessibilityEvent.eventTypeToString(event.getEventType()), event.getClassName(), event.getPackageName(),
                 getEventText(event));
         //Log.d(Constants.DEBUG_TAG, "[accessibilityevent] " + msg);
-        if (Constants.LOG_ENABLED) {
-            Util.writeLogToFile(getApplicationContext(), Constants.LOG_NAME, "SMARTPHONE_USE", msg);
-        }
+        Util.writeLogToFile(getApplicationContext(), Constants.LOG_NAME, "SMARTPHONE_USE", msg);
+
 
         Intent i = new Intent(Constants.INTENT_FILTER_USING_SMARTPHONE);
         i.putExtra("event_type", event.getEventType());

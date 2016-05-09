@@ -21,11 +21,10 @@ public class NotificationService extends NotificationListenerService {
     @Override
     public void onNotificationPosted(StatusBarNotification sbn) {
         Log.i(Constants.TAG, "Notification received: " + sbn.getPackageName());
-        if (Constants.LOG_ENABLED) {
-            Util.writeLogToFile(getApplicationContext(), Constants.LOG_NAME, "NOTIFICATION", "received, " + sbn.getPackageName());
-        }
 
-        Intent i = new  Intent(Constants.INTENT_FILTER_NOTIFICATION);
+        Util.writeLogToFile(getApplicationContext(), Constants.LOG_NAME, "NOTIFICATION", "received, " + sbn.getPackageName());
+
+        Intent i = new Intent(Constants.INTENT_FILTER_NOTIFICATION);
         i.putExtra("notification_action", "posted");
         i.putExtra("notification_package", sbn.getPackageName());
         sendBroadcast(i);
@@ -34,12 +33,11 @@ public class NotificationService extends NotificationListenerService {
     @Override
     public void onNotificationRemoved(StatusBarNotification sbn) {
         Log.i(Constants.TAG, "Notification removed: " + sbn.getPackageName());
-        if (Constants.LOG_ENABLED) {
-            Util.writeLogToFile(getApplicationContext(), Constants.LOG_NAME, "NOTIFICATION", "removed, " + sbn.getPackageName() );
-        }
 
-        Intent i = new  Intent(Constants.INTENT_FILTER_NOTIFICATION);
-        i.putExtra("notification_action","removed");
+        Util.writeLogToFile(getApplicationContext(), Constants.LOG_NAME, "NOTIFICATION", "removed, " + sbn.getPackageName());
+
+        Intent i = new Intent(Constants.INTENT_FILTER_NOTIFICATION);
+        i.putExtra("notification_action", "removed");
         i.putExtra("notification_package", sbn.getPackageName());
         sendBroadcast(i);
     }
