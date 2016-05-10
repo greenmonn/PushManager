@@ -82,13 +82,13 @@
             android:enabled="true"
             android:exported="true" />
         <service
-            android:name=".audio.AudioProcessorService"
+            android:name=".activity.StepCounterService"
             android:enabled="true"
             android:exported="true" />
         <service
-            android:name=".MainService"
+            android:name=".audio.AudioProcessorService"
             android:enabled="true"
-            android:exported="true"/>
+            android:exported="true" />
     </application>
 
 </manifest>

@@ -82,6 +82,8 @@ public class MainService extends Service implements GoogleApiClient.ConnectionCa
         mLocalPushThread = new LocalPushThread(this);
         mLocalPushThread.start();
 
+        startService(new Intent(this, StepCounterService.class));
+
         return START_STICKY;
     }
 
@@ -92,6 +94,7 @@ public class MainService extends Service implements GoogleApiClient.ConnectionCa
 
     @Override
     public void onDestroy() {
+        stopService(new Intent(this, StepCounterService.class));
         stopService(new Intent(this, DeferService.class));
         stopService(new Intent(this, BLEService.class));
         stopService(new Intent(this, AudioProcessorService.class));
@@ -197,8 +200,6 @@ public class MainService extends Service implements GoogleApiClient.ConnectionCa
     public void startNoInterventionService() {
         stopAllServices(false);
 
-        startService(new Intent(this, StepCounterService.class));
-
         Log.d(Constants.TAG, "NoIntervention started");
         Util.writeLogToFile(this, Constants.LOG_NAME, "START", "==============NoIntervention started===============");
     }
@@ -214,7 +215,6 @@ public class MainService extends Service implements GoogleApiClient.ConnectionCa
         if (mGoogleApiClient != null && mGoogleApiClient.isConnected()) {
             ActivityRecognition.ActivityRecognitionApi.requestActivityUpdates(mGoogleApiClient, Constants.ACTIVITY_REQUEST_DURATION, getActivityDetectionPendingIntent());
         }
-        startService(new Intent(this, StepCounterService.class));
         startService(new Intent(this, AudioProcessorService.class));
         startService(new Intent(this, BLEService.class));
         startService(new Intent(this, DeferService.class));
