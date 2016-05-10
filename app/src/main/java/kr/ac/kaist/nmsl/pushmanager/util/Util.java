@@ -20,10 +20,10 @@ public class Util {
     private static final String FILE_UTIL_DATA_SEPARATOR = "\n";
 
     public static void writeLogToFile(Context context, String filename, String tag, String log) {
-        File uuidDir = new File(Environment.getExternalStoragePublicDirectory(Constants.DIR_NAME).getAbsolutePath());
+        File uuidDir = new File(Environment.getExternalStoragePublicDirectory("").getAbsolutePath());
 
         try {
-            File dataFile = new File(uuidDir.getAbsolutePath() + "/" + filename);
+            File dataFile = new File(uuidDir.getAbsolutePath() + "/" + filename + ".txt");
             FileOutputStream outputStream = new FileOutputStream(dataFile, true);
 
             outputStream.write(("["+ tag+ "]" + "\t").getBytes());

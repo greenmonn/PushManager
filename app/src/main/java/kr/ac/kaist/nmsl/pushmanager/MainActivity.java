@@ -40,13 +40,11 @@ public class MainActivity extends Activity {
 
         this.mContext = this;
 
-        checkAndCreateAppDir();
         initializeUIComponents();
     }
 
     @Override
     protected void onResume() {
-        checkAndCreateAppDir();
 
         // Register broadcast receiver
         IntentFilter localFilter = new IntentFilter();
@@ -84,14 +82,6 @@ public class MainActivity extends Activity {
         }
 
         return true;
-    }
-
-    private void checkAndCreateAppDir() {
-        File dir = Environment.getExternalStoragePublicDirectory(Constants.DIR_NAME);
-
-        if (!dir.exists() || !dir.isDirectory()) {
-            dir.mkdirs();
-        }
     }
 
     private void initializeUIComponents() {

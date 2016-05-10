@@ -63,6 +63,9 @@ public class MainService extends Service implements GoogleApiClient.ConnectionCa
                 .build();
         mGoogleApiClient.connect();
 
+        final SimpleDateFormat fileDateFormat = new SimpleDateFormat(FILE_UTIL_FILE_DATETIME_FORMAT);
+        Constants.LOG_NAME = "SCAN_PUSH_MANAGER_"+fileDateFormat.format(new Date());
+
         // Register broadcast receiver
         IntentFilter filter = new IntentFilter();
         filter.addAction(Constants.INTENT_FILTER_NOTIFICATION);
@@ -290,15 +293,12 @@ public class MainService extends Service implements GoogleApiClient.ConnectionCa
             this.pushManagementMethodId = pushManagementMethodId;
             this.timeToRun = timeToRun;
 
-            final SimpleDateFormat fileDateFormat = new SimpleDateFormat(FILE_UTIL_FILE_DATETIME_FORMAT);
             switch (pushManagementMethodId) {
                 case R.id.radio_btn_no_intervention:
-                    Constants.LOG_NAME = fileDateFormat.format(new Date()) + "_" + ServiceState.NoIntervention.toString();
                     Log.d(Constants.TAG, "Starting no intervention service " + toggleCount);
                     mainService.startNoInterventionService();
                     break;
                 case R.id.radio_btn_defer:
-                    Constants.LOG_NAME = fileDateFormat.format(new Date()) + "_" + ServiceState.DeferService.toString();
                     Log.d(Constants.TAG, "Starting defer service " + toggleCount);
                     mainService.startDeferService();
                     break;
