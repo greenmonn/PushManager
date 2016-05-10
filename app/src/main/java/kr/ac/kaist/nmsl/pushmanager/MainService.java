@@ -303,15 +303,6 @@ public class MainService extends Service implements GoogleApiClient.ConnectionCa
                     mainService.startDeferService();
                     break;
             }
-
-            if (toggleCount == 0) {
-                // First, so lock the screen
-                try {
-                    ((DevicePolicyManager) this.mainService.getSystemService(Context.DEVICE_POLICY_SERVICE)).lockNow();
-                } catch (Exception e) {
-                    mainService.sendError("Failed to lock the device screen. Check permission. " + e.getMessage());
-                }
-            }
         }
 
         public ServiceState getPushManagementMethod() {
