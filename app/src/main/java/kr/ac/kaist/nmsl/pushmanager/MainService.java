@@ -180,6 +180,7 @@ public class MainService extends Service implements GoogleApiClient.ConnectionCa
         stopService(new Intent(this, DeferService.class));
         stopService(new Intent(this, BLEService.class));
         stopService(new Intent(this, AudioProcessorService.class));
+        stopService(new Intent(this, StepCounterService.class));
         if (mGoogleApiClient != null && mGoogleApiClient.isConnected()) {
             Log.d(Constants.TAG, "google activity request removed");
             ActivityRecognition.ActivityRecognitionApi.removeActivityUpdates(mGoogleApiClient, getActivityDetectionPendingIntent());
@@ -197,8 +198,6 @@ public class MainService extends Service implements GoogleApiClient.ConnectionCa
     public void startNoInterventionService() {
         stopAllServices(false);
 
-        startService(new Intent(this, StepCounterService.class));
-
         Log.d(Constants.TAG, "NoIntervention started");
         Util.writeLogToFile(this, Constants.LOG_NAME, "START", "==============NoIntervention started===============");
     }
@@ -214,10 +213,10 @@ public class MainService extends Service implements GoogleApiClient.ConnectionCa
         if (mGoogleApiClient != null && mGoogleApiClient.isConnected()) {
             ActivityRecognition.ActivityRecognitionApi.requestActivityUpdates(mGoogleApiClient, Constants.ACTIVITY_REQUEST_DURATION, getActivityDetectionPendingIntent());
         }
-        startService(new Intent(this, StepCounterService.class));
         startService(new Intent(this, AudioProcessorService.class));
         startService(new Intent(this, BLEService.class));
         startService(new Intent(this, DeferService.class));
+        startService(new Intent(this, StepCounterService.class));
     }
 
     public PendingIntent getActivityDetectionPendingIntent() {

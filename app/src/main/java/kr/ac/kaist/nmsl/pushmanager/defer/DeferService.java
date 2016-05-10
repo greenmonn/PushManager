@@ -9,6 +9,7 @@ import android.os.IBinder;
 import android.os.Vibrator;
 import android.util.Log;
 
+import com.google.android.gms.location.ActivityRecognition;
 import com.google.android.gms.location.DetectedActivity;
 
 import org.altbeacon.beacon.Beacon;
@@ -177,10 +178,23 @@ public class DeferService extends Service {
 
             if (intent.getAction().equals(Constants.INTENT_FILTER_ACTIVITY)) {
                 int prob = intent.getIntExtra("activity_probability", 0);
-                PhoneState.State state = getActivityName(intent.getIntExtra("activity_type", -1));
-                PhoneState.getInstance().updateMyState(state);
-                Log.d(Constants.DEBUG_TAG, "[Detected Activity] " + state.name() + ": " + prob);
-                //Toast.makeText(context, "[Detected Activity] " + state.name() + ": " + prob, Toast.LENGTH_SHORT).show();
+
+                if (intent.hasExtra("activity_type")) {
+                    PhoneState.State state = getActivityName(intent.getIntExtra("activity_type", -1));
+                    PhoneState.getInstance().updateMyState(state);
+                    Log.d(Constants.DEBUG_TAG, "[Detected Activity] " + state.name() + ": " + prob);
+                    //Toast.makeText(context, "[Detected Activity] " + state.name() + ": " + prob, Toast.LENGTH_SHORT).show();
+                } else if (intent.hasExtra("activity_name")) {
+                    if (intent.getStringExtra("activity_name").equals("STEP")) {
+                        PhoneState.State state = getActivityName(DetectedActivity.WALKING);
+                        PhoneState.getInstance().updateMyState(state);
+                        Log.d(Constants.DEBUG_TAG, "[Detected Activity from Step Counter] " + state.name() + ": " + prob);
+                    } else if (intent.getStringExtra("activity_name").equals("NO_STEP")) {
+                        PhoneState.State state = getActivityName(DetectedActivity.STILL);
+                        PhoneState.getInstance().updateMyState(state);
+                        Log.d(Constants.DEBUG_TAG, "[Detected Activity from Step Counter] " + state.name() + ": " + prob);
+                    }
+                }
 
                 if (intent.hasExtra("detected_activities")) {
                     ArrayList<DetectedActivity> detectedActivities = intent.getParcelableArrayListExtra("detected_activities");

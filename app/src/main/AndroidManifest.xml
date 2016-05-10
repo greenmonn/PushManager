@@ -78,6 +78,9 @@
             android:name=".activity.ActivityRecognitionIntentService"
             android:exported="false" />
         <service
+            android:name=".activity.StepCounterService"
+            android:exported="false" />
+        <service
             android:name=".ble.BLEService"
             android:enabled="true"
             android:exported="true" />
