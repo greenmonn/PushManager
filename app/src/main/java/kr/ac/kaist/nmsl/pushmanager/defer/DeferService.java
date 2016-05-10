@@ -31,6 +31,7 @@ public class DeferService extends Service {
     private Vibrator mVibrator;
     private Timer mTimer;
     private int mNotificationCount;
+    private HashMap<String, Integer> mNotificationCountHash;
     private SocialContext socialContext;
 
     private DeferServiceReceiver mDeferServiceReceiver = null;
@@ -39,12 +40,13 @@ public class DeferService extends Service {
     }
 
     private void notifyQueuedNotifications(String cause) {
-        if (mNotificationCount > 0) {
+        if (mNotificationCount > 0 && mNotificationCountHash.keySet().size() > 0) {
             mVibrator.vibrate(VIBRATION_DURATION);
             Log.i(Constants.DEBUG_TAG, "Vibrated");
-            Util.writeLogToFile(getApplicationContext(), Constants.LOG_NAME, "BREAKPOINT", "Vibrated. Cause: " + cause + " / Queued Notification Count: " + mNotificationCount);
+            Util.writeLogToFile(getApplicationContext(), Constants.LOG_NAME, "BREAKPOINT", "Vibrated. Cause: " + cause + " / Queued Notification Count: " + mNotificationCount + ", application count:" + mNotificationCountHash.keySet().size());
 
             mNotificationCount = 0;
+            mNotificationCountHash.clear();
         }
     }
 
@@ -58,6 +60,7 @@ public class DeferService extends Service {
         }
 
         mNotificationCount = 0;
+        mNotificationCountHash = new HashMap<>();
 
         mDeferServiceReceiver = new DeferServiceReceiver();
 
@@ -168,11 +171,13 @@ public class DeferService extends Service {
                 if (intent.getStringExtra("notification_action").equals("posted")) {
                     Log.i(Constants.DEBUG_TAG, "Notification incremented");
                     mNotificationCount++;
-                    Util.writeLogToFile(getApplicationContext(), Constants.LOG_NAME, "NOTIFICATION", "Notification count incremented to " + mNotificationCount);
+                    mNotificationCountHash.put(intent.getStringExtra("notification_package"), Integer.valueOf(1));
+                    Util.writeLogToFile(getApplicationContext(), Constants.LOG_NAME, "NOTIFICATION", "Notification count incremented to " + mNotificationCount + ", " + mNotificationCountHash.keySet().size() + " application");
                 } else if (intent.getStringExtra("notification_action").equals("removed")) {
                     Log.i(Constants.DEBUG_TAG, "Notification decremented");
                     mNotificationCount--;
-                    Util.writeLogToFile(getApplicationContext(), Constants.LOG_NAME, "NOTIFICATION", "Notification count decremented to " + mNotificationCount);
+                    mNotificationCountHash.remove(intent.getStringExtra("notification_package"));
+                    Util.writeLogToFile(getApplicationContext(), Constants.LOG_NAME, "NOTIFICATION", "Notification count decremented to " + mNotificationCount + ", " + mNotificationCountHash.keySet().size() + " application");
                 }
             }
 

@@ -60,5 +60,11 @@ public class Constants {
     public static final int IS_TALKING_SAMPLE_COUNT = 3;
     public static final int BLE_BEACON_NOT_DETECTED_THRESHOLD = 3;
 
+    public static final String NOTIFICATION_BLACK_LIST_REGEX = "com\\.android\\.vending" +
+            "|com\\.android\\.providers\\.downloads" +
+            "|com\\.google\\.android\\.gms" +
+            "|com\\.android\\.systemui" +
+            "|com\\.android\\.chrome";
+
     public static final long SMARTPHONE_NOT_USING_INTERVAL = 5000L;
 }

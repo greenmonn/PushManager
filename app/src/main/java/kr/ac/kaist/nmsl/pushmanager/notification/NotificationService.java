@@ -24,10 +24,12 @@ public class NotificationService extends NotificationListenerService {
 
         Util.writeLogToFile(getApplicationContext(), Constants.LOG_NAME, "NOTIFICATION", "received, " + sbn.getPackageName());
 
-        Intent i = new Intent(Constants.INTENT_FILTER_NOTIFICATION);
-        i.putExtra("notification_action", "posted");
-        i.putExtra("notification_package", sbn.getPackageName());
-        sendBroadcast(i);
+        if (!sbn.getPackageName().matches(Constants.NOTIFICATION_BLACK_LIST_REGEX)) {
+            Intent i = new Intent(Constants.INTENT_FILTER_NOTIFICATION);
+            i.putExtra("notification_action", "posted");
+            i.putExtra("notification_package", sbn.getPackageName());
+            sendBroadcast(i);
+        }
     }
 
     @Override
@@ -36,9 +38,12 @@ public class NotificationService extends NotificationListenerService {
 
         Util.writeLogToFile(getApplicationContext(), Constants.LOG_NAME, "NOTIFICATION", "removed, " + sbn.getPackageName());
 
-        Intent i = new Intent(Constants.INTENT_FILTER_NOTIFICATION);
-        i.putExtra("notification_action", "removed");
-        i.putExtra("notification_package", sbn.getPackageName());
-        sendBroadcast(i);
+        if (!sbn.getPackageName().matches(Constants.NOTIFICATION_BLACK_LIST_REGEX)) {
+
+            Intent i = new Intent(Constants.INTENT_FILTER_NOTIFICATION);
+            i.putExtra("notification_action", "removed");
+            i.putExtra("notification_package", sbn.getPackageName());
+            sendBroadcast(i);
+        }
     }
 }

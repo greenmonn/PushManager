@@ -53,8 +53,8 @@ public class MainService extends Service implements GoogleApiClient.ConnectionCa
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         // Start common services that must be run ALL the time
-        Log.d(Constants.TAG, "Starting NotificationService");
-        startService(new Intent(this, NotificationService.class));
+        //Log.d(Constants.TAG, "Starting NotificationService");
+        //startService(new Intent(this, NotificationService.class));
         //Google API Client
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addApi(ActivityRecognition.API)
@@ -124,7 +124,7 @@ public class MainService extends Service implements GoogleApiClient.ConnectionCa
 
         // Stop common services that must be run ALL the time
         Log.d(Constants.TAG, "Stopping NotificationService");
-        stopService(new Intent(this, NotificationService.class));
+        //stopService(new Intent(this, NotificationService.class));
 
         // Recover old ringer state
         unmuteDevice();
