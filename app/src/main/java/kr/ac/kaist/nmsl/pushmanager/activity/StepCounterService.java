@@ -25,6 +25,9 @@ public class StepCounterService extends Service implements SensorEventListener {
     private Date lastStepUpdated;
     private Timer timer;
 
+    private final int NO_STEP_DURATION = 5000;
+    private final int STEP_THRESHOLD = 3;
+
     public StepCounterService() {
     }
 
@@ -45,7 +48,7 @@ public class StepCounterService extends Service implements SensorEventListener {
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
-                if (new Date().getTime() - lastStepUpdated.getTime() > 5000 ) {
+                if (new Date().getTime() - lastStepUpdated.getTime() > NO_STEP_DURATION ) {
                     stepCounterList.clear();
 
                     Intent i = new  Intent(Constants.INTENT_FILTER_ACTIVITY);
@@ -55,7 +58,7 @@ public class StepCounterService extends Service implements SensorEventListener {
                     sendBroadcast(i);
                 }
             }
-        }, 5000, 5000);
+        }, NO_STEP_DURATION, NO_STEP_DURATION);
 
         return START_STICKY;
     }
@@ -74,7 +77,7 @@ public class StepCounterService extends Service implements SensorEventListener {
         stepCounterList.add(event.values[0]);
         lastStepUpdated = new Date();
 
-        if (stepCounterList.size() > 3) {
+        if (stepCounterList.size() > STEP_THRESHOLD) {
             //Toast.makeText(getApplicationContext(), event.values[0] + " steps.", Toast.LENGTH_SHORT).show();
             Intent i = new  Intent(Constants.INTENT_FILTER_ACTIVITY);
             i.putExtra("activity_probability", 100);
