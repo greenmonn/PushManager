@@ -2,7 +2,6 @@ package kr.ac.kaist.nmsl.pushmanager;
 
 import android.app.PendingIntent;
 import android.app.Service;
-import android.app.admin.DevicePolicyManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -26,7 +25,6 @@ import kr.ac.kaist.nmsl.pushmanager.activity.StepCounterService;
 import kr.ac.kaist.nmsl.pushmanager.audio.AudioProcessorService;
 import kr.ac.kaist.nmsl.pushmanager.ble.BLEService;
 import kr.ac.kaist.nmsl.pushmanager.defer.DeferService;
-import kr.ac.kaist.nmsl.pushmanager.notification.NotificationService;
 import kr.ac.kaist.nmsl.pushmanager.push.LocalPushThread;
 import kr.ac.kaist.nmsl.pushmanager.util.Util;
 

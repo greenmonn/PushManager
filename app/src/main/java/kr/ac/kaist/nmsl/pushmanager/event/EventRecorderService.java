@@ -15,8 +15,10 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import kr.ac.kaist.nmsl.pushmanager.Constants;
+import kr.ac.kaist.nmsl.pushmanager.MainService;
 import kr.ac.kaist.nmsl.pushmanager.activity.PhoneState;
 import kr.ac.kaist.nmsl.pushmanager.socialcontext.SocialContext;
+import kr.ac.kaist.nmsl.pushmanager.util.ServiceUtil;
 import kr.ac.kaist.nmsl.pushmanager.util.Util;
 
 public class EventRecorderService extends AccessibilityService {
@@ -49,7 +51,10 @@ public class EventRecorderService extends AccessibilityService {
                 Log.d(Constants.DEBUG_TAG, "isUsing is about to be expired! " + (new Date().getTime() - PhoneState.getInstance().getLastIsUsingSmartphoneUpdated().getTime()) + ", " + PhoneState.getInstance().getIsUsingSmartphone());
                 if (PhoneState.getInstance().getIsUsingSmartphone() && Constants.SMARTPHONE_NOT_USING_INTERVAL < (new Date().getTime() - PhoneState.getInstance().getLastIsUsingSmartphoneUpdated().getTime())) {
 
-                    Util.writeLogToFile(getApplicationContext(), Constants.LOG_NAME, "SMARTPHONE_USE", "TYPE_WINDOW_STATE_CHANGED, android.widget.FrameLayout, com.android.systemui, Turn into idle mode");
+                    if (ServiceUtil.isServiceRunning(getApplicationContext(), MainService.class)) {
+                        Util.writeLogToFile(getApplicationContext(), Constants.LOG_NAME, "SMARTPHONE_USE", "TYPE_WINDOW_STATE_CHANGED, android.widget.FrameLayout, com.android.systemui, Turn into idle mode");
+                    }
+
                     SocialContext.getInstance().setMeUsingSmartphone(false);
                     PhoneState.getInstance().updateIsUsingSmartphone(false);
                     Log.d(Constants.DEBUG_TAG, "isUsing expired!");
@@ -73,7 +78,9 @@ public class EventRecorderService extends AccessibilityService {
                 AccessibilityEvent.eventTypeToString(event.getEventType()), event.getClassName(), event.getPackageName(),
                 getEventText(event));
         //Log.d(Constants.DEBUG_TAG, "[accessibilityevent] " + msg);
-        Util.writeLogToFile(getApplicationContext(), Constants.LOG_NAME, "SMARTPHONE_USE", msg);
+        if (ServiceUtil.isServiceRunning(this, MainService.class)) {
+            Util.writeLogToFile(getApplicationContext(), Constants.LOG_NAME, "SMARTPHONE_USE", msg);
+        }
 
 
         Intent i = new Intent(Constants.INTENT_FILTER_USING_SMARTPHONE);

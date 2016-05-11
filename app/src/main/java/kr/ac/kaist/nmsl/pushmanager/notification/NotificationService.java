@@ -7,6 +7,8 @@ import android.service.notification.StatusBarNotification;
 import android.util.Log;
 
 import kr.ac.kaist.nmsl.pushmanager.Constants;
+import kr.ac.kaist.nmsl.pushmanager.MainService;
+import kr.ac.kaist.nmsl.pushmanager.util.ServiceUtil;
 import kr.ac.kaist.nmsl.pushmanager.util.Util;
 
 public class NotificationService extends NotificationListenerService {
@@ -22,7 +24,9 @@ public class NotificationService extends NotificationListenerService {
     public void onNotificationPosted(StatusBarNotification sbn) {
         Log.i(Constants.TAG, "Notification received: " + sbn.getPackageName());
 
-        Util.writeLogToFile(getApplicationContext(), Constants.LOG_NAME, "NOTIFICATION", "received, " + sbn.getPackageName());
+        if (ServiceUtil.isServiceRunning(this, MainService.class)) {
+            Util.writeLogToFile(getApplicationContext(), Constants.LOG_NAME, "NOTIFICATION", "received, " + sbn.getPackageName());
+        }
 
         if (!sbn.getPackageName().matches(Constants.NOTIFICATION_BLACK_LIST_REGEX)) {
             Intent i = new Intent(Constants.INTENT_FILTER_NOTIFICATION);
@@ -36,7 +40,9 @@ public class NotificationService extends NotificationListenerService {
     public void onNotificationRemoved(StatusBarNotification sbn) {
         Log.i(Constants.TAG, "Notification removed: " + sbn.getPackageName());
 
-        Util.writeLogToFile(getApplicationContext(), Constants.LOG_NAME, "NOTIFICATION", "removed, " + sbn.getPackageName());
+        if (ServiceUtil.isServiceRunning(this, MainService.class)) {
+            Util.writeLogToFile(getApplicationContext(), Constants.LOG_NAME, "NOTIFICATION", "removed, " + sbn.getPackageName());
+        }
 
         if (!sbn.getPackageName().matches(Constants.NOTIFICATION_BLACK_LIST_REGEX)) {
 
