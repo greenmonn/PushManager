@@ -64,7 +64,10 @@ public class Constants {
             "|com\\.android\\.providers\\.downloads" +
             "|com\\.google\\.android\\.gms" +
             "|com\\.android\\.systemui" +
-            "|com\\.android\\.chrome";
+            "|com\\.android\\.chrome" +
+            "|\\.launcher" +
+            "|com\\.uplus\\." +
+            "";
 
     public static final long SMARTPHONE_NOT_USING_INTERVAL = 5000L;
 }
