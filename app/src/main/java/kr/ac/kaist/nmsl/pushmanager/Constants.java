@@ -66,8 +66,9 @@ public class Constants {
             "|com\\.android\\.systemui" +
             "|com\\.android\\.chrome" +
             "|\\.launcher" +
-            "|com\\.uplus\\." +
-            "";
+            "|com\\.qihoo\\.security" +
+            "|com\\.estsoft\\.alyac" +
+            "|com\\.ahnlab\\.v3mobile";
 
     public static final long SMARTPHONE_NOT_USING_INTERVAL = 5000L;
 }
