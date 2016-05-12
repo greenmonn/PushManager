@@ -49,8 +49,8 @@ public class LocalPushThread extends Thread {
             // Update new max milliseconds without push limit
             maxMillisecondsWithoutPush = randomMilliseconds();
 
-            Log.d(Constants.DEBUG_TAG, "Your new waiting time is: " + maxMillisecondsWithoutPush);
-            Util.writeLogToFile(this.context, Constants.LOG_NAME, "LOCAL_PUSH", "New waiting time: " + maxMillisecondsWithoutPush + " ms");
+            //Log.d(Constants.DEBUG_TAG, "Your new waiting time is: " + maxMillisecondsWithoutPush);
+            //Util.writeLogToFile(this.context, Constants.LOG_NAME, "LOCAL_PUSH", "New waiting time: " + maxMillisecondsWithoutPush + " ms");
         }
     }
 
