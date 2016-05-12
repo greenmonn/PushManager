@@ -146,7 +146,7 @@ public class BLEService extends Service implements BeaconConsumer {
             beaconTransmitter = new BeaconTransmitter(getApplicationContext(),
                     beaconParser);
             beaconTransmitter.setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_BALANCED);
-            beaconTransmitter.setAdvertiseTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_LOW);
+            beaconTransmitter.setAdvertiseTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_MEDIUM);
         } else {
             Log.d(TAG, "Unable to advertise beacon.");
             Util.writeLogToFile(getApplicationContext(), Constants.LOG_NAME, "BLE", "Unable to advertise beacon. Unsupported device.");
