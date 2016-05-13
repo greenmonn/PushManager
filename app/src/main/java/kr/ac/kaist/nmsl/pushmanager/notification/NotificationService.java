@@ -22,10 +22,10 @@ public class NotificationService extends NotificationListenerService {
 
     @Override
     public void onNotificationPosted(StatusBarNotification sbn) {
-        Log.i(Constants.TAG, "Notification received: " + sbn.getPackageName() + ", " + sbn.isOngoing());
+        Log.i(Constants.TAG, "Notification received: " + sbn.getPackageName() + ", isOngoing: " + sbn.isOngoing());
 
         if (ServiceUtil.isServiceRunning(this, MainService.class)) {
-            Util.writeLogToFile(getApplicationContext(), Constants.LOG_NAME, "NOTIFICATION", "received, " + sbn.getPackageName());
+            Util.writeLogToFile(getApplicationContext(), Constants.LOG_NAME, "NOTIFICATION", "received, " + sbn.getPackageName() + ", isOngoing: " + sbn.isOngoing());
         }
 
         if (!sbn.getPackageName().matches(Constants.NOTIFICATION_BLACK_LIST_REGEX) && !sbn.getPackageName().equals("android") && !sbn.isOngoing()) {
@@ -41,7 +41,7 @@ public class NotificationService extends NotificationListenerService {
         Log.i(Constants.TAG, "Notification removed: " + sbn.getPackageName());
 
         if (ServiceUtil.isServiceRunning(this, MainService.class)) {
-            Util.writeLogToFile(getApplicationContext(), Constants.LOG_NAME, "NOTIFICATION", "removed, " + sbn.getPackageName());
+            Util.writeLogToFile(getApplicationContext(), Constants.LOG_NAME, "NOTIFICATION", "removed, " + sbn.getPackageName() + ", isOngoing: " + sbn.isOngoing());
         }
 
         if (!sbn.getPackageName().matches(Constants.NOTIFICATION_BLACK_LIST_REGEX) && !sbn.getPackageName().equals("android") && !sbn.isOngoing()) {
