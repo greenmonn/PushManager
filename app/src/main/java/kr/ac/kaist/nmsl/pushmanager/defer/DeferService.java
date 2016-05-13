@@ -1,6 +1,7 @@
 package kr.ac.kaist.nmsl.pushmanager.defer;
 
 import android.app.Service;
+import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -23,6 +24,7 @@ import kr.ac.kaist.nmsl.pushmanager.Constants;
 import kr.ac.kaist.nmsl.pushmanager.activity.PhoneState;
 import kr.ac.kaist.nmsl.pushmanager.audio.AudioResult;
 import kr.ac.kaist.nmsl.pushmanager.socialcontext.SocialContext;
+import kr.ac.kaist.nmsl.pushmanager.util.BLEUtil;
 import kr.ac.kaist.nmsl.pushmanager.util.Util;
 
 public class DeferService extends Service {
@@ -98,6 +100,13 @@ public class DeferService extends Service {
                 msg += ", with_others: " + (socialContextAttributes.containsKey(Constants.CONTEXT_ATTRIBUTE_TYPES.WITH_OTHERS) ? socialContextAttributes.get(Constants.CONTEXT_ATTRIBUTE_TYPES.WITH_OTHERS).doubleValue : -9999);
 
                 Util.writeLogToFile(getApplicationContext(), Constants.LOG_NAME, "BREAKPOINT", msg);
+
+                if (!socialContextAttributes.containsKey(Constants.CONTEXT_ATTRIBUTE_TYPES.WITH_OTHERS)) {
+                    BluetoothAdapter btAdapter = BLEUtil.getBluetoothAdapter();
+                    if (!btAdapter.isEnabled()) {
+                        btAdapter.enable();
+                    }
+                }
             }
 
 
