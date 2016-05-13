@@ -67,12 +67,12 @@ public class LocalPushThread extends Thread {
         b.setAutoCancel(false)
                 .setWhen(System.currentTimeMillis())
                 .setSmallIcon(R.mipmap.ic_launcher)
-                .setTicker("Mail")
-                .setContentTitle("You got a mail!")
-                .setContentText("Lorem ipsum dolor sit amet, consectetur adipiscing elit.")
+                .setTicker("KAIST CS")
+                .setContentTitle("KAIST Experiment App Notification")
+                .setContentText("You can remove it if you want.")
                 .setDefaults(Notification.DEFAULT_LIGHTS | Notification.DEFAULT_SOUND | Notification.DEFAULT_VIBRATE)
                 .setContentIntent(contentIntent)
-                .setContentInfo("Mail");
+                .setContentInfo("");
         NotificationManager notificationManager = (NotificationManager) this.context.getSystemService(Context.NOTIFICATION_SERVICE);
         notificationManager.notify(1, b.build());
 
