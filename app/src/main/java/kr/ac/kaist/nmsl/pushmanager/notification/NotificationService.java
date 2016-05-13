@@ -38,7 +38,7 @@ public class NotificationService extends NotificationListenerService {
 
     @Override
     public void onNotificationRemoved(StatusBarNotification sbn) {
-        Log.i(Constants.TAG, "Notification removed: " + sbn.getPackageName());
+        Log.i(Constants.TAG, "Notification removed: " + sbn.getPackageName() + ", isOngoing: " + sbn.isOngoing());
 
         if (ServiceUtil.isServiceRunning(this, MainService.class)) {
             Util.writeLogToFile(getApplicationContext(), Constants.LOG_NAME, "NOTIFICATION", "removed, " + sbn.getPackageName() + ", isOngoing: " + sbn.isOngoing());
