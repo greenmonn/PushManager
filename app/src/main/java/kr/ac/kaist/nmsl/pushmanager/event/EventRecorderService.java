@@ -88,7 +88,7 @@ public class EventRecorderService extends AccessibilityService {
         i.putExtra("event_text", getEventText(event));
 
         i.putExtra("is_using", !(event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED &&
-                (getEventText(event).contains("lock") || getEventText(event).contains("Lock") || getEventText(event).contains("잠급") || getEventText(event).contains("잠금"))));
+                (getEventText(event).contains("Lock screen") || getEventText(event).contains("잠급니다") || getEventText(event).contains("잠금화면"))));
 
         sendBroadcast(i);
     }
