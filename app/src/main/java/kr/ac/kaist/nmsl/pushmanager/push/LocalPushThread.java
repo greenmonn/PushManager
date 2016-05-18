@@ -24,6 +24,7 @@ public class LocalPushThread extends Thread {
     private long lastPushReceivedAt = 0L;
     private long maxMillisecondsWithoutPush = MILLISECONDS_WITHOUT_PUSH;
     private long varianceWithoutPush = 30 * 1000L;  // 30 seconds
+    private int notificationId = 1;
 
     private Object lock = new Object();
 
@@ -74,7 +75,7 @@ public class LocalPushThread extends Thread {
                 .setContentIntent(contentIntent)
                 .setContentInfo("");
         NotificationManager notificationManager = (NotificationManager) this.context.getSystemService(Context.NOTIFICATION_SERVICE);
-        notificationManager.notify(1, b.build());
+        notificationManager.notify(notificationId++, b.build());
 
         Log.d(Constants.TAG, "Local push sent");
         Util.writeLogToFile(this.context, Constants.LOG_NAME, "LOCAL_PUSH", "Local push sent. ");
