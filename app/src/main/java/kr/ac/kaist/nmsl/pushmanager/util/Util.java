@@ -18,23 +18,26 @@ import kr.ac.kaist.nmsl.pushmanager.Constants;
  */
 public class Util {
     private static final String FILE_UTIL_DATA_SEPARATOR = "\n";
+    private static Object loglock = new Object();
 
     public static void writeLogToFile(Context context, String filename, String tag, String log) {
         File uuidDir = new File(Environment.getExternalStoragePublicDirectory("").getAbsolutePath());
 
-        try {
-            File dataFile = new File(uuidDir.getAbsolutePath() + "/" + filename + ".txt");
-            FileOutputStream outputStream = new FileOutputStream(dataFile, true);
+        synchronized (loglock) {
+            try {
+                File dataFile = new File(uuidDir.getAbsolutePath() + "/" + filename + ".txt");
+                FileOutputStream outputStream = new FileOutputStream(dataFile, true);
 
-            outputStream.write(("["+ tag+ "]" + "\t").getBytes());
-            outputStream.write((Long.toString(new Date().getTime()) + ", ").getBytes());
-            outputStream.write((log + FILE_UTIL_DATA_SEPARATOR).getBytes());
+                outputStream.write(("[" + tag + "]" + "\t").getBytes());
+                outputStream.write((Long.toString(new Date().getTime()) + ", ").getBytes());
+                outputStream.write((log + FILE_UTIL_DATA_SEPARATOR).getBytes());
 
-            outputStream.close();
+                outputStream.close();
 
-            refreshDataFile(context, dataFile);
-        } catch (Exception e) {
-            Log.e(Constants.DEBUG_TAG, e.getMessage());
+                refreshDataFile(context, dataFile);
+            } catch (Exception e) {
+                Log.e(Constants.DEBUG_TAG, e.getMessage());
+            }
         }
     }
 
