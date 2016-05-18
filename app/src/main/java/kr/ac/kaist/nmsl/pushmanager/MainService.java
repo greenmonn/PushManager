@@ -264,14 +264,14 @@ public class MainService extends Service implements GoogleApiClient.ConnectionCa
                     // Need to recover
                     Log.d(Constants.DEBUG_TAG, "Recovering ringer mode to " + mOldRingerMode + " since device is in no intervention.");
                     unmuteDevice();
+                }
 
-                    if (intent.getStringExtra("notification_action").equals("posted")) {
-                        if (mLocalPushThread != null) {
-                            String pack = intent.getStringExtra("notification_package");
+                if (intent.getStringExtra("notification_action").equals("posted")) {
+                    if (mLocalPushThread != null) {
+                        String pack = intent.getStringExtra("notification_package");
 
-                            Log.d(Constants.TAG, "A push notification received from: " + pack);
-                            mLocalPushThread.updateLastPushReceivedAtToNow();
-                        }
+                        Log.d(Constants.TAG, "A push notification received from: " + pack);
+                        mLocalPushThread.updateLastPushReceivedAtToNow();
                     }
                 }
             }
