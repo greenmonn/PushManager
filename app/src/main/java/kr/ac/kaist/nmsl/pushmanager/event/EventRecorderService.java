@@ -48,16 +48,30 @@ public class EventRecorderService extends AccessibilityService {
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
+                //TODO : change to be expired by 'first' used time
                 Log.d(Constants.DEBUG_TAG, "isUsing is about to be expired! " + (new Date().getTime() - PhoneState.getInstance().getLastIsUsingSmartphoneUpdated().getTime()) + ", " + PhoneState.getInstance().getIsUsingSmartphone());
-                if (PhoneState.getInstance().getIsUsingSmartphone() && Constants.SMARTPHONE_NOT_USING_INTERVAL < (new Date().getTime() - PhoneState.getInstance().getLastIsUsingSmartphoneUpdated().getTime())) {
+
+                if (PhoneState.getInstance().getIsUsingSmartphone() && Constants.SMARTPHONE_USE_EXPIRE < (new Date().getTime() - PhoneState.getInstance().getFirstIsUsingSmartphoneUpdated().getTime())) {
+                    PhoneState.getInstance().updateUseExpired(true);
+
+                    Log.d(Constants.DEBUG_TAG, "isUsing expired due to first using timeout!");
+                }
+
+                if (PhoneState.getInstance().getIsUsingSmartphone() && Constants.SMARTPHONE_NOT_USING_INTERVAL < (new Date().getTime() - PhoneState.getInstance().getFirstIsUsingSmartphoneUpdated().getTime())) {
 
                     if (ServiceUtil.isServiceRunning(getApplicationContext(), MainService.class)) {
                         Util.writeLogToFile(getApplicationContext(), Constants.LOG_NAME, "SMARTPHONE_USE", "TYPE_WINDOW_STATE_CHANGED, android.widget.FrameLayout, com.android.systemui, Turn into idle mode");
                     }
 
                     SocialContext.getInstance().setMeUsingSmartphone(false);
+                    PhoneState.getInstance().updateUseExpired(false); //ambiguous case : what if user starts to use immediately?
                     PhoneState.getInstance().updateIsUsingSmartphone(false);
-                    Log.d(Constants.DEBUG_TAG, "isUsing expired!");
+
+                    //when to change 'expired' state?
+                    //true -> false
+                    //false -> true
+
+                    Log.d(Constants.DEBUG_TAG, "isUsing expired due to last using timeout!");
                 }
             }
         }, Constants.SMARTPHONE_NOT_USING_INTERVAL, Constants.SMARTPHONE_NOT_USING_INTERVAL);
@@ -89,7 +103,7 @@ public class EventRecorderService extends AccessibilityService {
 
         i.putExtra("is_using", !(event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED &&
                 (getEventText(event).contains("lock") || getEventText(event).contains("Lock") || getEventText(event).contains("잠급") || getEventText(event).contains("잠금"))));
-
+        // TODO : ignore during "expired state"
         sendBroadcast(i);
     }
 

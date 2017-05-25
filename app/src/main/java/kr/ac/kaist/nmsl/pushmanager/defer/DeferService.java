@@ -74,6 +74,7 @@ public class DeferService extends Service {
         mTimer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
+
                 HashMap<Integer, SocialContext.Attribute> socialContextAttributes = socialContext.getCurrentContext();
                 boolean isBreakpoint = socialContext.getIsBreakpoint(socialContextAttributes);
                 if (isBreakpoint) {
@@ -176,6 +177,9 @@ public class DeferService extends Service {
 
         @Override
         public void onReceive(Context context, Intent intent) {
+            Log.i("DeferServiceReceiver", intent.getAction());
+            long time= System.currentTimeMillis();
+            android.util.Log.i("Time Class ", "Start onReceive"+time);
             if (intent.getAction().equals(Constants.INTENT_FILTER_NOTIFICATION)) {
                 if (intent.getStringExtra("notification_action").equals("posted")) {
                     Log.i(Constants.DEBUG_TAG, "Notification incremented");
@@ -238,8 +242,19 @@ public class DeferService extends Service {
 
             if (intent.getAction().equals(Constants.INTENT_FILTER_USING_SMARTPHONE)) {
                 boolean isUsing = intent.getBooleanExtra("is_using", false);
-                socialContext.setMeUsingSmartphone(isUsing);
-                PhoneState.getInstance().updateIsUsingSmartphone(isUsing);
+                // TODO 1 : USE -> non-breakpoint - initialize expired state
+                if (PhoneState.getInstance().getIsUsingSmartphone() == true && isUsing == false) {
+                    PhoneState.getInstance().updateUseExpired(false);
+                }
+
+                if (!PhoneState.getInstance().getIsExpired() || isUsing == false) {
+
+                    socialContext.setMeUsingSmartphone(isUsing);
+                    PhoneState.getInstance().updateIsUsingSmartphone(isUsing);
+                }
+                // TODO 2 : Ignore when expired == true
+
+                Log.d(Constants.DEBUG_TAG, "meUsing : " + PhoneState.getInstance().getIsUsingSmartphone() );
             }
 
             if (intent.getAction().equals(Constants.INTENT_FILTER_AUDIO)) {
@@ -254,6 +269,9 @@ public class DeferService extends Service {
                     notifyQueuedNotifications("MODE_CHANGE");
                 }
             }
+
+
+            android.util.Log.i("Time Class ", "end onReceive"+ System.currentTimeMillis());
         }
     }
 }
