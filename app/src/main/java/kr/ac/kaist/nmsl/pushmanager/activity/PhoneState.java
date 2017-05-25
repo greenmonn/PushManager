@@ -21,13 +21,16 @@ public class PhoneState {
     private DetectedActivity myDetectedActivity;
     private boolean isUsingSmartphone = false;
     private Date lastIsUsingSmartphoneUpdated;
+    private Date firstIsUsingSmartphoneUpdated;
+    private boolean expired = false;
     private boolean isTalking = false;
     private Queue<Boolean> isTalkingQueue;
     private PhoneStateListener phoneStateListener = null;
 
-    private PhoneState() {
+    private PhoneState() {  // TO_ASK : 이거 왜 있는거지??
         isTalkingQueue = new LinkedList<>();
         lastIsUsingSmartphoneUpdated = new Date();
+        firstIsUsingSmartphoneUpdated = new Date();
     }
 
     public synchronized static PhoneState getInstance() {
@@ -82,13 +85,24 @@ public class PhoneState {
         else return false;
     }
 
+    public void updateUseExpired (boolean useExpired) {
+        this.expired = useExpired;
+    }
+
     public void updateIsUsingSmartphone (boolean isUsingSmartphone) {
         lastIsUsingSmartphoneUpdated = new Date();
+
+        if (this.isUsingSmartphone == false) {
+            firstIsUsingSmartphoneUpdated = new Date();
+            this.expired = false;
+        }
+        //TODO : firstIsUsingSmartphoneUpdated if this.isUsingSmartphone == false
 
         if (this.phoneStateListener != null && this.isUsingSmartphone != isUsingSmartphone) {
             this.isUsingSmartphone = isUsingSmartphone;
             phoneStateListener.onMyPhoneStateChanged();
         }
+
     }
 
     public void updateIsTalking (boolean isTalking) {
@@ -144,6 +158,8 @@ public class PhoneState {
     public boolean getIsUsingSmartphone () { return this.isUsingSmartphone; }
     public boolean getIsTalking () { return this.isTalking; }
     public Date getLastIsUsingSmartphoneUpdated () { return lastIsUsingSmartphoneUpdated; }
+    public Date getFirstIsUsingSmartphoneUpdated () { return firstIsUsingSmartphoneUpdated; }
+    public boolean getIsExpired () { return this.expired; }
 
     public enum State {
         Unknown(4),

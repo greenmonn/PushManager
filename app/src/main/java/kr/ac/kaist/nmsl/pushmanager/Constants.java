@@ -71,4 +71,6 @@ public class Constants {
             "|com\\.ahnlab\\.v3mobile";
 
     public static final long SMARTPHONE_NOT_USING_INTERVAL = 5000L;
+
+    public static final long SMARTPHONE_USE_EXPIRE = 50000L;
 }
