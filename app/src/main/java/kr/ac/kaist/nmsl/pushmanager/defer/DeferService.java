@@ -242,17 +242,17 @@ public class DeferService extends Service {
 
             if (intent.getAction().equals(Constants.INTENT_FILTER_USING_SMARTPHONE)) {
                 boolean isUsing = intent.getBooleanExtra("is_using", false);
-                // TODO 1 : USE -> non-breakpoint - initialize expired state
-                if (PhoneState.getInstance().getIsUsingSmartphone() == true && isUsing == false) {
+                // TODO 1 : real USE end - initialize expired state
+                if (isUsing == false) {
                     PhoneState.getInstance().updateUseExpired(false);
                 }
 
-                if (!PhoneState.getInstance().getIsExpired() || isUsing == false) {
-
+                // TODO 2 : Ignore when expired == true
+                if (PhoneState.getInstance().getIsExpired() == false) {
                     socialContext.setMeUsingSmartphone(isUsing);
                     PhoneState.getInstance().updateIsUsingSmartphone(isUsing);
                 }
-                // TODO 2 : Ignore when expired == true
+
 
                 Log.d(Constants.DEBUG_TAG, "meUsing : " + PhoneState.getInstance().getIsUsingSmartphone() );
             }
