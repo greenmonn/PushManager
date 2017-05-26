@@ -49,15 +49,18 @@ public class EventRecorderService extends AccessibilityService {
             @Override
             public void run() {
                 //TODO : change to be expired by 'first' used time
-                Log.d(Constants.DEBUG_TAG, "isUsing is about to be expired! " + (new Date().getTime() - PhoneState.getInstance().getLastIsUsingSmartphoneUpdated().getTime()) + ", " + PhoneState.getInstance().getIsUsingSmartphone());
+                Log.d(Constants.DEBUG_TAG, "expired : " + PhoneState.getInstance().getIsExpired());
+                Log.d(Constants.DEBUG_TAG, "isUsing is about to be expired! " + (new Date().getTime() - PhoneState.getInstance().getFirstIsUsingSmartphoneUpdated().getTime()) + ", " + PhoneState.getInstance().getIsUsingSmartphone());
 
                 if (PhoneState.getInstance().getIsUsingSmartphone() && Constants.SMARTPHONE_USE_EXPIRE < (new Date().getTime() - PhoneState.getInstance().getFirstIsUsingSmartphoneUpdated().getTime())) {
                     PhoneState.getInstance().updateUseExpired(true);
+                    SocialContext.getInstance().setMeUsingSmartphone(false);
+                    PhoneState.getInstance().updateIsUsingSmartphone(false);
 
                     Log.d(Constants.DEBUG_TAG, "isUsing expired due to first using timeout!");
                 }
 
-                if (PhoneState.getInstance().getIsUsingSmartphone() && Constants.SMARTPHONE_NOT_USING_INTERVAL < (new Date().getTime() - PhoneState.getInstance().getFirstIsUsingSmartphoneUpdated().getTime())) {
+                if (PhoneState.getInstance().getIsUsingSmartphone() && Constants.SMARTPHONE_NOT_USING_INTERVAL < (new Date().getTime() - PhoneState.getInstance().getLastIsUsingSmartphoneUpdated().getTime())) {
 
                     if (ServiceUtil.isServiceRunning(getApplicationContext(), MainService.class)) {
                         Util.writeLogToFile(getApplicationContext(), Constants.LOG_NAME, "SMARTPHONE_USE", "TYPE_WINDOW_STATE_CHANGED, android.widget.FrameLayout, com.android.systemui, Turn into idle mode");
@@ -104,7 +107,9 @@ public class EventRecorderService extends AccessibilityService {
         i.putExtra("is_using", !(event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED &&
                 (getEventText(event).contains("lock") || getEventText(event).contains("Lock") || getEventText(event).contains("잠급") || getEventText(event).contains("잠금"))));
         // TODO : ignore during "expired state"
+        Log.d(Constants.DEBUG_TAG, "USING SMARTPHONE");
         sendBroadcast(i);
+
     }
 
     @Override

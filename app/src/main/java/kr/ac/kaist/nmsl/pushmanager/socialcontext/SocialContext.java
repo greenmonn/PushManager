@@ -295,8 +295,11 @@ public class SocialContext {
         }
 
         othersCount = macAddressSet.size();
+        Log.d("EXPIRE_TEST", "othersCount : " + othersCount);
+        Log.d("EXPIRE_TEST", "isUsingCount : " + isUsingCount);
+        Log.d("EXPIRE_TEST", "meUsing : " + this.meUsingSmartphone);
 
-        isOtherUsingSmartphone = (othersCount-isUsingCount) <= 1 || this.meUsingSmartphone ;// && isUsingCount < prevBeacons.size() - 1;
+        isOtherUsingSmartphone = (othersCount-isUsingCount) <= 0 || this.meUsingSmartphone ;// && isUsingCount < prevBeacons.size() - 1;
 
         results.add(new Attribute(Constants.CONTEXT_ATTRIBUTE_TYPES.WITH_OTHERS, othersCount, new Date().getTime()));
         results.add(new Attribute(Constants.CONTEXT_ATTRIBUTE_TYPES.OTHER_USING_SMARTPHONE, Boolean.valueOf(isOtherUsingSmartphone).toString(), new Date().getTime()));
