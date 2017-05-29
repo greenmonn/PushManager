@@ -33,7 +33,7 @@ import kr.ac.kaist.nmsl.pushmanager.util.Util;
  */
 public class MainService extends Service implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
     public static final String FILE_UTIL_FILE_DATETIME_FORMAT = "yyyyMMdd_HHmmss";
-    public static final int TOTAL_NUMBER_OF_TOGGLES = 4;
+    public static final int TOTAL_NUMBER_OF_TOGGLES = 2;
 
     // Service toggle related
     private ServiceToggleTimer mServiceToggleTimer = null;

@@ -288,10 +288,11 @@ public class SocialContext {
         HashSet<String> macAddressSet = new HashSet<>();
 
         for (Beacon beacon: prev) {
-            macAddressSet.add(beacon.getId1().toString());
-            if (PhoneState.getInstance().getIsUsingSmartphoneFromBeacon(beacon)) {
+            String macAddr = beacon.getId1().toString();
+            if (PhoneState.getInstance().getIsUsingSmartphoneFromBeacon(beacon) && !macAddressSet.contains(macAddr)) {
                 isUsingCount++;
             }
+            macAddressSet.add(macAddr);
         }
 
         othersCount = macAddressSet.size();
