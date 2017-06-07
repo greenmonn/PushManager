@@ -25,6 +25,7 @@ import kr.ac.kaist.nmsl.pushmanager.activity.StepCounterService;
 import kr.ac.kaist.nmsl.pushmanager.audio.AudioProcessorService;
 import kr.ac.kaist.nmsl.pushmanager.ble.BLEService;
 import kr.ac.kaist.nmsl.pushmanager.defer.DeferService;
+import kr.ac.kaist.nmsl.pushmanager.nointervention.NoInterventionService;
 import kr.ac.kaist.nmsl.pushmanager.push.LocalPushThread;
 import kr.ac.kaist.nmsl.pushmanager.util.Util;
 
@@ -182,6 +183,7 @@ public class MainService extends Service implements GoogleApiClient.ConnectionCa
         stopService(new Intent(this, BLEService.class));
         stopService(new Intent(this, AudioProcessorService.class));
         stopService(new Intent(this, StepCounterService.class));
+        stopService(new Intent(this, NoInterventionService.class));
         if (mGoogleApiClient != null && mGoogleApiClient.isConnected()) {
             Log.d(Constants.TAG, "google activity request removed");
             ActivityRecognition.ActivityRecognitionApi.removeActivityUpdates(mGoogleApiClient, getActivityDetectionPendingIntent());
@@ -199,8 +201,15 @@ public class MainService extends Service implements GoogleApiClient.ConnectionCa
     public void startNoInterventionService() {
         stopAllServices(false);
 
-        Log.d(Constants.TAG, "NoIntervention started");
-        Util.writeLogToFile(this, Constants.LOG_NAME, "START", "==============NoIntervention started===============");
+        Log.d(Constants.TAG, "NoInterventionService started");
+        Util.writeLogToFile(this, Constants.LOG_NAME, "START", "==============NoInterventionService started===============");
+        if (mGoogleApiClient != null && mGoogleApiClient.isConnected()) {
+            ActivityRecognition.ActivityRecognitionApi.requestActivityUpdates(mGoogleApiClient, Constants.ACTIVITY_REQUEST_DURATION, getActivityDetectionPendingIntent());
+        }
+        startService(new Intent(this, AudioProcessorService.class));
+        startService(new Intent(this, BLEService.class));
+        startService(new Intent(this, NoInterventionService.class));
+        startService(new Intent(this, StepCounterService.class));
     }
 
     public void startDeferService() {

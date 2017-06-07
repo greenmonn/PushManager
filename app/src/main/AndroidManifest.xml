@@ -91,7 +91,11 @@
         <service
             android:name=".MainService"
             android:enabled="true"
-            android:exported="true"/>
+            android:exported="true" />
+        <service
+            android:name=".nointervention.NoInterventionService"
+            android:enabled="true"
+            android:exported="true"></service>
     </application>
 
 </manifest>

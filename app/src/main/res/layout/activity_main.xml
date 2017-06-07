@@ -121,4 +121,13 @@
 
     </RadioGroup>
 
+    <Button
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Test"
+        android:id="@+id/btn_notification_test"
+        android:layout_alignBottom="@+id/edt_duration"
+        android:layout_toEndOf="@+id/edt_duration" />
+
 </RelativeLayout>

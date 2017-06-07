@@ -1,6 +1,9 @@
 package kr.ac.kaist.nmsl.pushmanager;
 
 import android.app.Activity;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -11,6 +14,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.Settings;
+import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.view.View;
 import android.widget.Button;
@@ -168,6 +172,35 @@ public class MainActivity extends Activity {
                 Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
                 intent.setData(Uri.parse("package:" + getApplicationContext().getPackageName()));
                 startActivity(intent);
+            }
+        });
+
+        final Button btnNotificationTest = (Button) findViewById(R.id.btn_notification_test);
+        btnNotificationTest.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int notificationCount = 0;
+                try {
+                    notificationCount = Integer.parseInt(((EditText) findViewById(R.id.edt_duration)).getText().toString());
+                } catch (Exception e) {
+                    notificationCount = 0;
+                }
+
+                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                PendingIntent contentIntent = PendingIntent.getActivity(getApplicationContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+                NotificationCompat.Builder b = new NotificationCompat.Builder(getApplicationContext());
+                b.setAutoCancel(false)
+                        .setWhen(System.currentTimeMillis())
+                        .setSmallIcon(R.mipmap.ic_launcher)
+                        .setTicker("KAIST CS")
+                        .setContentTitle("SCAN Notification Manager")
+                        .setContentText("You have " + notificationCount + " new notifications.")
+                        .setDefaults(Notification.DEFAULT_LIGHTS | Notification.DEFAULT_SOUND | Notification.DEFAULT_VIBRATE)
+                        .setContentIntent(contentIntent)
+                        .setContentInfo("");
+                NotificationManager notificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
+                notificationManager.notify(1234, b.build());
             }
         });
 
