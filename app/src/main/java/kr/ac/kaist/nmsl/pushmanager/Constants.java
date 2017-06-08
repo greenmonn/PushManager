@@ -75,4 +75,6 @@ public class Constants {
     public static final long SMARTPHONE_USE_EXPIRE = 50000L;
 
     public static final long WARMUP_TIME = 5 * 60 * 1000L;
+
+    public static final int SCAN_MANAGER_NOTIFICATION_ID = 870331;
 }

@@ -33,7 +33,7 @@ public class NotificationService extends NotificationListenerService {
                             ", isClearable: " + sbn.isClearable());
         }
 
-        if (!sbn.getPackageName().matches(Constants.NOTIFICATION_BLACK_LIST_REGEX) && !sbn.getPackageName().equals("android") && !sbn.isOngoing() && sbn.isClearable()) {
+        if (sbn.getId() != Constants.SCAN_MANAGER_NOTIFICATION_ID & !sbn.getPackageName().matches(Constants.NOTIFICATION_BLACK_LIST_REGEX) && !sbn.getPackageName().equals("android") && !sbn.isOngoing() && sbn.isClearable()) {
             Intent i = new Intent(Constants.INTENT_FILTER_NOTIFICATION);
             i.putExtra("notification_action", "posted");
             i.putExtra("notification_package", sbn.getPackageName());
@@ -54,7 +54,7 @@ public class NotificationService extends NotificationListenerService {
                             ", isClearable: " + sbn.isClearable());
         }
 
-        if (!sbn.getPackageName().matches(Constants.NOTIFICATION_BLACK_LIST_REGEX) && !sbn.getPackageName().equals("android") && !sbn.isOngoing() && sbn.isClearable()) {
+        if (sbn.getId() != Constants.SCAN_MANAGER_NOTIFICATION_ID & !sbn.getPackageName().matches(Constants.NOTIFICATION_BLACK_LIST_REGEX) && !sbn.getPackageName().equals("android") && !sbn.isOngoing() && sbn.isClearable()) {
             Intent i = new Intent(Constants.INTENT_FILTER_NOTIFICATION);
             i.putExtra("notification_action", "removed");
             i.putExtra("notification_package", sbn.getPackageName());

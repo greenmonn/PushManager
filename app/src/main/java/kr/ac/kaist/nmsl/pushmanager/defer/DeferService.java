@@ -1,5 +1,8 @@
 package kr.ac.kaist.nmsl.pushmanager.defer;
 
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
@@ -8,6 +11,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.IBinder;
 import android.os.Vibrator;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
 import com.google.android.gms.location.ActivityRecognition;
@@ -21,6 +25,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import kr.ac.kaist.nmsl.pushmanager.Constants;
+import kr.ac.kaist.nmsl.pushmanager.MainActivity;
+import kr.ac.kaist.nmsl.pushmanager.R;
 import kr.ac.kaist.nmsl.pushmanager.activity.PhoneState;
 import kr.ac.kaist.nmsl.pushmanager.audio.AudioResult;
 import kr.ac.kaist.nmsl.pushmanager.socialcontext.SocialContext;
@@ -46,6 +52,22 @@ public class DeferService extends Service {
             mVibrator.vibrate(VIBRATION_DURATION);
             Log.i(Constants.DEBUG_TAG, "Vibrated");
             Util.writeLogToFile(getApplicationContext(), Constants.LOG_NAME, "BREAKPOINT", "Vibrated. Cause: " + cause + " / Queued Notification Count: " + mNotificationCount + ", application count:" + mNotificationCountHash.keySet().size());
+
+            Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+            PendingIntent contentIntent = PendingIntent.getActivity(getApplicationContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+            NotificationCompat.Builder b = new NotificationCompat.Builder(getApplicationContext());
+            b.setAutoCancel(false)
+                    .setWhen(System.currentTimeMillis())
+                    .setSmallIcon(R.mipmap.ic_launcher)
+                    .setTicker("KAIST NMSL")
+                    .setContentTitle("SCAN Notification Manager")
+                    .setContentText("You have " + mNotificationCount + " new notifications.")
+                    .setDefaults(Notification.DEFAULT_LIGHTS | Notification.DEFAULT_SOUND | Notification.DEFAULT_VIBRATE)
+                    .setContentIntent(contentIntent)
+                    .setContentInfo("");
+            NotificationManager notificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
+            notificationManager.notify(Constants.SCAN_MANAGER_NOTIFICATION_ID, b.build());
 
             mNotificationCount = 0;
             mNotificationCountHash.clear();
@@ -189,6 +211,7 @@ public class DeferService extends Service {
                 } else if (intent.getStringExtra("notification_action").equals("removed")) {
                     Log.i(Constants.DEBUG_TAG, "Notification decremented");
                     mNotificationCount--;
+                    if (mNotificationCount < 0) mNotificationCount = 0;
                     mNotificationCountHash.remove(intent.getStringExtra("notification_package"));
                     Util.writeLogToFile(getApplicationContext(), Constants.LOG_NAME, "NOTIFICATION", "Notification count decremented to " + mNotificationCount + ", " + mNotificationCountHash.keySet().size() + " application");
                 }
