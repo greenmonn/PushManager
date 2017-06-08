@@ -1,5 +1,6 @@
 package kr.ac.kaist.nmsl.pushmanager;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -14,6 +15,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.Settings;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.view.View;
@@ -45,6 +47,16 @@ public class MainActivity extends Activity {
         this.mContext = this;
 
         initializeUIComponents();
+
+        ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.READ_EXTERNAL_STORAGE,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                Manifest.permission.RECORD_AUDIO,
+                Manifest.permission.BLUETOOTH,
+                Manifest.permission.BLUETOOTH_ADMIN,
+                Manifest.permission.READ_PHONE_STATE,
+                Manifest.permission.LOCATION_HARDWARE,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+        },0);
     }
 
     @Override
