@@ -73,4 +73,6 @@ public class Constants {
     public static final long SMARTPHONE_NOT_USING_INTERVAL = 5000L;
 
     public static final long SMARTPHONE_USE_EXPIRE = 50000L;
+
+    public static final long WARMUP_TIME = 5 * 60 * 1000L;
 }

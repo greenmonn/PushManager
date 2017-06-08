@@ -74,7 +74,7 @@ public class MainService extends Service implements GoogleApiClient.ConnectionCa
         mTotalDuration = intent.getLongExtra("duration", 0L) * 1000L;
         int firstPushManagementServiceToExecute = intent.getIntExtra("firstPushManagementServiceToExecute", R.id.radio_btn_no_intervention);
 
-        mServiceToggleTimer = new ServiceToggleTimer(this, 0, firstPushManagementServiceToExecute, mTotalDuration / TOTAL_NUMBER_OF_TOGGLES);
+        mServiceToggleTimer = new ServiceToggleTimer(this, -1, firstPushManagementServiceToExecute, mTotalDuration / TOTAL_NUMBER_OF_TOGGLES);
         mServiceToggleTimer.start();
 
         // Start push thread
@@ -242,7 +242,12 @@ public class MainService extends Service implements GoogleApiClient.ConnectionCa
             mServiceToggleTimer.cancel();
         }
 
-        if (prevToggleCount + 1 < TOTAL_NUMBER_OF_TOGGLES) {
+        if (prevToggleCount == -1) {
+            int newToggleCount = prevToggleCount + 1;
+
+            mServiceToggleTimer = new ServiceToggleTimer(this, newToggleCount, prevPushManagementMethodId, duration);
+            mServiceToggleTimer.start();
+        } else if (prevToggleCount + 1 < TOTAL_NUMBER_OF_TOGGLES) {
             int newToggleCount = prevToggleCount + 1;
             int newPushManagementMethodId = prevPushManagementMethodId == R.id.radio_btn_defer ? R.id.radio_btn_no_intervention : R.id.radio_btn_defer;
 
@@ -294,21 +299,27 @@ public class MainService extends Service implements GoogleApiClient.ConnectionCa
         private final long timeToRun;
 
         public ServiceToggleTimer(MainService mainService, int toggleCount, int pushManagementMethodId, long timeToRun) {
-            super(timeToRun, 1000L);
+            super(toggleCount == -1 ? Constants.WARMUP_TIME : timeToRun, 1000L);
             this.mainService = mainService;
             this.toggleCount = toggleCount;
             this.pushManagementMethodId = pushManagementMethodId;
             this.timeToRun = timeToRun;
 
-            switch (pushManagementMethodId) {
-                case R.id.radio_btn_no_intervention:
-                    Log.d(Constants.TAG, "Starting no intervention service " + toggleCount);
-                    mainService.startNoInterventionService();
-                    break;
-                case R.id.radio_btn_defer:
-                    Log.d(Constants.TAG, "Starting defer service " + toggleCount);
-                    mainService.startDeferService();
-                    break;
+            if (toggleCount == -1) {
+                Log.d(Constants.TAG, "Starting warm-up " + toggleCount);
+                Log.d(Constants.TAG, "Warm-up started");
+                Util.writeLogToFile(mainService.getApplicationContext(), Constants.LOG_NAME, "START", "==============Warm-up started===============");
+            } else {
+                switch (pushManagementMethodId) {
+                    case R.id.radio_btn_no_intervention:
+                        Log.d(Constants.TAG, "Starting no intervention service " + toggleCount);
+                        mainService.startNoInterventionService();
+                        break;
+                    case R.id.radio_btn_defer:
+                        Log.d(Constants.TAG, "Starting defer service " + toggleCount);
+                        mainService.startDeferService();
+                        break;
+                }
             }
         }
 
@@ -327,9 +338,13 @@ public class MainService extends Service implements GoogleApiClient.ConnectionCa
 
         @Override
         public void onFinish() {
-            Log.d(Constants.TAG, "onFinish called from " + toggleCount + " / " + pushManagementMethodId);
-
-            this.mainService.runNextServiceToggleTimer(toggleCount, pushManagementMethodId, timeToRun);
+            if (toggleCount == -1) {
+                Log.d(Constants.TAG, "onFinish called from " + toggleCount + " / warm-up");
+                this.mainService.runNextServiceToggleTimer(toggleCount, pushManagementMethodId, timeToRun);
+            } else {
+                Log.d(Constants.TAG, "onFinish called from " + toggleCount + " / " + pushManagementMethodId);
+                this.mainService.runNextServiceToggleTimer(toggleCount, pushManagementMethodId, timeToRun);
+            }
         }
 
         @Override
