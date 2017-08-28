@@ -1,0 +1,31 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 23
+    buildToolsVersion '25.0.0'
+
+    defaultConfig {
+        applicationId "kr.ac.kaist.nmsl.pushmanager"
+        minSdkVersion 19
+        targetSdkVersion 23
+        versionCode 1
+        versionName "1.0"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile 'com.parse.bolts:bolts-android:1.+'
+    compile 'com.parse:parse-android:1.+'
+    compile 'org.jsoup:jsoup:1.7.2'
+    compile 'com.android.support:support-v4:+'
+    compile 'com.google.android.gms:play-services-location:8.4.0'
+    compile 'org.altbeacon:android-beacon-library:2+'
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+}
